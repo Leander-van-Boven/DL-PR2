@@ -40,6 +40,7 @@ def build_discriminator(architecture, img_shape):
         classes=1000,
         classifier_activation="softmax"
     )
+
     return disc
 
 
