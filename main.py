@@ -30,7 +30,7 @@ def main(args):
     gen = build_generator(noise_size, img_shape)
     disc = build_discriminator(architecture, img_shape)
 
-    run_experiment(gen, disc, X_train, opt, epochs, batch_size)
+    run_experiment(gen, disc, X_train, opt, epochs, batch_size, args.log_dir)
 
 
 
@@ -72,7 +72,7 @@ if __name__ == "__main__":
         default='adam', help='the optimizer to use'
     )
     parser.add_argument(
-        '-s', '-input_size', type=int, nargs='+', default=[100], 
+        '-s', '--input_size', type=int, nargs='+', default=[100], 
         help='the input size for the generator network'
     )
     parser.add_argument(
@@ -83,9 +83,16 @@ if __name__ == "__main__":
         '-e', '--epochs', type=int, default=500, 
         help='amount of training epochs'
     )
+    parser.add_argument(
+        '-l', '--log_dir', type=str, default='~/', 
+        help='output location for training and test logs'
+    )
 
     args = parser.parse_args()
 
+    # note(Ramon): this is nice, but when running on Peregrine, the entire
+    # terminal output of the program is saved to a log file by default so I'm 
+    # not sure it's necessary
     logging.basicConfig(
         level=args.verbosity, datefmt='%I:%M:%S', 
         format='[%(asctime)s] (%(levelno)s) %(message)s'

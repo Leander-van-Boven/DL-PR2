@@ -1,12 +1,13 @@
 import numpy as np
+import os
+import datetime
+
 from tensorflow.keras import callbacks
-
 from tensorflow.keras.callbacks import TensorBoard
-
 from gan import combine_model
 
 
-def run_experiment(gen, disc, X_train, opt, epochs, batch_size):
+def run_experiment(gen, disc, X_train, opt, epochs, batch_size, log_dir):
     # Rescale X_train to [-1, 1]?
 
     noise_size = gen.layers[0].shape
@@ -20,6 +21,14 @@ def run_experiment(gen, disc, X_train, opt, epochs, batch_size):
         loss='binary_crossentropy',
         metrics=['accuracy']
     )
+
+    # prepare log output file. files start with YYYY-MM-DDTHH:MM
+    run_time = datetime.datetime.now().isoformat(timespec='minutes')
+    # might wanna include some details about the run here as well so we can
+    # identify runs easily. does python have a nameof() operator?
+    log_file_name = run_time + '-training.log'
+
+    log_file = os.path.join(log_dir, log_file_name)
 
     for epoch in range(epochs):
         # Train discriminator
@@ -35,6 +44,9 @@ def run_experiment(gen, disc, X_train, opt, epochs, batch_size):
 
         # Train generator
         g_loss = combined.train_on_batch(noise, valid)
+
+        # TODO: write logs to log_file somewhere around here. do we want to use
+        #       a plain csv writer or a keras callback?
 
         print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
               (epoch, d_loss[0], 100*d_loss[1], g_loss))
