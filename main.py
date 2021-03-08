@@ -35,9 +35,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        level=20, datefmt='%I:%M:%S', format='[%(asctime)s] %(message)s')
-
 
     datasets = {
         "mnist": mnist,     # (28, 28, 1)
