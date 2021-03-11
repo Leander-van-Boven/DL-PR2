@@ -31,16 +31,24 @@ def build_generator(noise_size, img_size):
     return Model(noise, img)
 
 
-def build_discriminator(architecture, img_shape):
-    disc = architecture(
+def build_discriminator(architecture, img_shape, opt):
+    cnn_disc = architecture(
         include_top=False,
-        weights=None,  # "imagenet",
+        weights="imagenet",
         input_shape=img_shape,
         pooling=None,
-        classes=1000,
         classifier_activation="softmax"
     )
+    cnn_disc.trainable = False
 
+    bool_layer = Dense(1, activation='sigmoid')(cnn_disc.output)
+    disc = Model(inputs=cnn_disc.input, outputs=bool_layer)
+
+    disc.compile(
+        optimiser=opt,
+        loss='binary_crossentropy',
+        metrics=['accuracy']
+    )
     return disc
 
 

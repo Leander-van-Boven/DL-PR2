@@ -10,8 +10,8 @@ from tensorflow.keras.datasets import mnist, cifar10
 from gan import build_generator, build_discriminator
 from experiment import run_experiment
 
-def main(args):
 
+def main(args):
     # TODO: needs cmd args, these values are out of thin air
     noise_size = tuple(args.input_size)
     opt = args.optimizer
@@ -31,7 +31,6 @@ def main(args):
     disc = build_discriminator(architecture, img_shape)
 
     run_experiment(gen, disc, X_train, opt, epochs, batch_size, args.log_dir)
-
 
 
 if __name__ == "__main__":
