@@ -3,14 +3,19 @@ from tensorflow.keras.layers import Activation, BatchNormalization, Conv2D
 from tensorflow.keras.layers import Dense, Input, Reshape, UpSampling2D
 
 
-def build_generator(noise_size, img_size):
+def build_generator(latent_dim, img_size):
     (img_row, img_col, channels) = img_size
+
+    row = img_row//4
+    col = img_col//4
+
+    assert row*4 == img_row and col*4 == img_col
 
     model = Sequential()
 
-    model.add(Dense(128 * 7 * 7, activation="relu",
-                    input_dim=noise_size))
-    model.add(Reshape((7, 7, 128)))
+    model.add(Dense(128 * row * col, activation="relu",
+                    input_dim=latent_dim))
+    model.add(Reshape((row, col, 128)))
     model.add(UpSampling2D())
     model.add(Conv2D(128, kernel_size=3, padding="same"))
     model.add(BatchNormalization(momentum=0.8))
@@ -21,11 +26,10 @@ def build_generator(noise_size, img_size):
     model.add(Activation("relu"))
     model.add(Conv2D(channels, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
-    # TODO: make sure output size of the model is correct
 
     model.summary()
 
-    noise = Input(shape=(noise_size,))
+    noise = Input(shape=(latent_dim,))
     img = model(noise)
 
     return Model(noise, img)
@@ -55,5 +59,11 @@ def build_discriminator(architecture, img_shape, opt):
 def combine_model(gen, disc):
     noise = Input(shape=gen.layers[0].shape)
     img = gen(noise)
+    disc.trainable = False
     valid = disc(img)
     return Model(noise, valid)
+
+
+if __name__ == "__main__":
+    model = build_generator(100, (28,28,1))
+    model.summary()

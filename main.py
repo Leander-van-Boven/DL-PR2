@@ -71,8 +71,8 @@ if __name__ == "__main__":
         default='adam', help='the optimizer to use'
     )
     parser.add_argument(
-        '-s', '--input_size', type=int, nargs='+', default=[100], 
-        help='the input size for the generator network'
+        '-s', '--latent_dim', type=int, default=100,
+        help='the dimensionality of the latent space used for input noise'
     )
     parser.add_argument(
         '-b', '--batch', type=int, choices=[i*8 for i in range(1, 33)], 
