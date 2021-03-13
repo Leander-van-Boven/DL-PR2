@@ -1,6 +1,7 @@
 import numpy as np
 import os
 import datetime
+import csv
 
 from tensorflow.keras import callbacks
 from tensorflow.keras.callbacks import TensorBoard
@@ -47,6 +48,11 @@ def run_experiment(gen, disc, X_train, opt, epochs, batch_size, log_dir):
 
         # TODO: write logs to log_file somewhere around here. do we want to use
         #       a plain csv writer or a keras callback?
+        with open(log_file_name, mode='w') as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+            csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss])
+
 
         print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
               (epoch, d_loss[0], 100*d_loss[1], g_loss))
