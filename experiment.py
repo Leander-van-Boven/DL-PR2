@@ -15,7 +15,6 @@ def run_experiment(gen, disc, X_train, opt, epochs, batch_size, log_dir):
     valid = np.ones((batch_size, 1))
     fake = np.zeros((batch_size, 1))
 
-    disc.trainable = False
     combined = combine_model(gen, disc)
     combined.compile(
         optimizer=opt,
