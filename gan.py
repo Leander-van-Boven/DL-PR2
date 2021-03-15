@@ -65,5 +65,5 @@ def combine_model(gen, disc):
 
 
 if __name__ == "__main__":
-    model = build_generator(100, (28,28,1))
+    model = build_generator(100, (28, 28, 1))
     model.summary()

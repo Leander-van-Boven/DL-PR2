@@ -28,7 +28,7 @@ def main(args):
     architecture = args.disc_arch
 
     gen = build_generator(noise_size, img_shape)
-    disc = build_discriminator(architecture, img_shape)
+    disc = build_discriminator(architecture, img_shape, opt)
 
     run_experiment(gen, disc, X_train, opt, epochs, batch_size, args.log_dir)
 
@@ -54,15 +54,15 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-v', '--verbosity', type=int, choices=[1,2,3,4,5], default=2,
+        '-v', '--verbosity', type=int, choices=[1, 2, 3, 4, 5], default=2,
         help='verbosity level. 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL'
     )
     parser.add_argument(
-        '-d', '--dataset', type=datasets.get, choices=datasets.keys(), 
+        '-d', '--dataset', type=datasets.get, choices=datasets.keys(),
         default='mnist', help='the dataset to use in the experiment'
     )
     parser.add_argument(
-        '-a', '--disc_arch', type=disc_architectures.get, 
+        '-a', '--disc_arch', type=disc_architectures.get,
         choices=disc_architectures.keys(), default='efnb0',
         help='the architecture to use for the discriminator'
     )
@@ -75,25 +75,25 @@ if __name__ == "__main__":
         help='the dimensionality of the latent space used for input noise'
     )
     parser.add_argument(
-        '-b', '--batch', type=int, choices=[i*8 for i in range(1, 33)], 
+        '-b', '--batch', type=int, choices=[i*8 for i in range(1, 33)],
         default=32, help='the batch size'
     )
     parser.add_argument(
-        '-e', '--epochs', type=int, default=500, 
+        '-e', '--epochs', type=int, default=500,
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='~/', 
+        '-l', '--log_dir', type=str, default='~/',
         help='output location for training and test logs'
     )
 
     args = parser.parse_args()
 
     # note(Ramon): this is nice, but when running on Peregrine, the entire
-    # terminal output of the program is saved to a log file by default so I'm 
+    # terminal output of the program is saved to a log file by default so I'm
     # not sure it's necessary
     logging.basicConfig(
-        level=args.verbosity, datefmt='%I:%M:%S', 
+        level=args.verbosity, datefmt='%I:%M:%S',
         format='[%(asctime)s] (%(levelno)s) %(message)s'
     )
 
