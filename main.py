@@ -13,6 +13,7 @@ from tensorflow.keras.optimizers import Adam
 
 from gan import build_generator, build_discriminator
 from experiment import run_experiment
+from dcgan_disc import build_dcgan_discriminator
 
 from set_session import initialize_session
 
@@ -28,7 +29,9 @@ def main(args):
     (x_train, _), (x_test, _) = args.dataset.load_data()
 
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
+    force_single_channel = False
     if len(x_train.shape[1:]) == 2:
+        force_single_channel = True
         x_train = process_for_mnist(x_train)
         x_test = process_for_mnist(x_test)
 
@@ -36,8 +39,11 @@ def main(args):
 
     architecture = args.disc_arch
 
-    gen = build_generator(noise_size, img_shape)
-    disc = build_discriminator(architecture, img_shape, opt)
+    gen = build_generator(noise_size, img_shape, force_single_channel)
+    if architecture == 'dcgan':
+        disc = build_dcgan_discriminator(img_shape, opt)
+    else:
+        disc = build_discriminator(architecture, img_shape, opt)
 
     run_experiment(gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir)
 
@@ -65,7 +71,8 @@ if __name__ == "__main__":
     disc_architectures = {
         "irv2": InceptionResNetV2,
         "efnb0": EfficientNetB0,
-        "efnb7": EfficientNetB7
+        "efnb7": EfficientNetB7,
+        "dcgan": "dcgan"
     }
 
     # TODO: Change string value to class constructor, add argument
