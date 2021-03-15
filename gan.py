@@ -43,7 +43,7 @@ def build_discriminator(architecture, img_shape, opt):
         pooling=None,
         classifier_activation="softmax"
     )
-    cnn_disc.trainable = False
+    # cnn_disc.trainable = False
 
     flattened = Flatten()(cnn_disc.output)
 
