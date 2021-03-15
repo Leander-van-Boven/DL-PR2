@@ -9,6 +9,7 @@ from tensorflow.keras.applications import InceptionResNetV2
 from tensorflow.keras.applications.efficientnet\
     import EfficientNetB0, EfficientNetB7
 from tensorflow.keras.datasets import mnist, cifar10
+from tensorflow.keras.optimizers import Adam
 
 from gan import build_generator, build_discriminator
 from experiment import run_experiment
@@ -17,6 +18,8 @@ from set_session import initialize_session
 
 
 def main(args):
+    initialize_session()
+
     noise_size = args.latent_dim
     opt = args.optimizer
     epochs = args.epochs
@@ -67,7 +70,8 @@ if __name__ == "__main__":
     # TODO: Change string value to class constructor, add argument
     #       for optimizer parameters (*args, **kwargs)
     optimizers = {
-        'adam': 'adam'
+        'adam': Adam(0.0002, 0.5),
+        'mse': 'mse'
     }
 
     parser = argparse.ArgumentParser()
@@ -76,16 +80,15 @@ if __name__ == "__main__":
         help='verbosity level. 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL'
     )
     parser.add_argument(
-        '-d', '--dataset', type=partial(get_dict_val, datasets), choices=datasets.keys(),
+        '-d', '--dataset', type=partial(get_dict_val, datasets),
         default='mnist', help='the dataset to use in the experiment'
     )
     parser.add_argument(
-        '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures),
-        choices=disc_architectures.keys(), default='efnb0',
+        '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures), default='efnb0',
         help='the architecture to use for the discriminator'
     )
     parser.add_argument(
-        '-o', '--optimizer', type=partial(get_dict_val, optimizers), choices=optimizers.keys(),
+        '-o', '--optimizer', type=partial(get_dict_val, optimizers),
         default='adam', help='the optimizer to use'
     )
     parser.add_argument(
@@ -110,10 +113,9 @@ if __name__ == "__main__":
     # note(Ramon): this is nice, but when running on Peregrine, the entire
     # terminal output of the program is saved to a log file by default so I'm
     # not sure it's necessary
-    logging.basicConfig(
-        level=args.verbosity, datefmt='%I:%M:%S',
-        format='[%(asctime)s] (%(levelno)s) %(message)s'
-    )
+    # logging.basicConfig(
+    #     level=args.verbosity, datefmt='%I:%M:%S',
+    #     format='[%(asctime)s] (%(levelno)s) %(message)s'
+    # )
 
-    # initialize_session()
     main(args)
