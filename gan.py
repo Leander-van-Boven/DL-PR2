@@ -1,15 +1,22 @@
+import tensorflow as tf
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Activation, BatchNormalization, Conv2D
 from tensorflow.keras.layers import Dense, Input, Reshape, UpSampling2D, Flatten
+from tensorflow.keras.layers import Lambda
 
 
-def build_generator(latent_dim, img_size):
+
+def build_generator(latent_dim, img_size, force_single_channel=False):
     (img_row, img_col, channels) = img_size
 
     row = img_row//4
     col = img_col//4
 
     assert row*4 == img_row and col*4 == img_col
+
+    if force_single_channel:
+        img_chan = img_size[2]
+        channels = 1
 
     model = Sequential()
 
@@ -26,6 +33,11 @@ def build_generator(latent_dim, img_size):
     model.add(Activation("relu"))
     model.add(Conv2D(channels, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
+    if force_single_channel:
+        c = tf.constant([1,1,1,img_chan], tf.int32)
+        model.add(Lambda(
+            lambda a : tf.tile(a, c)
+        ))
 
     model.summary()
 
@@ -43,7 +55,7 @@ def build_discriminator(architecture, img_shape, opt):
         pooling=None,
         classifier_activation="softmax"
     )
-    cnn_disc.trainable = False
+    # cnn_disc.trainable = False
 
     flattened = Flatten()(cnn_disc.output)
 
