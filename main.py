@@ -28,8 +28,10 @@ def main(args):
     (x_train, y_train), (x_test, _) = args.dataset.load_data()
 
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
+    force_single_channel = False
     if len(x_train.shape[1:]) == 2:
         x_train = x_train[y_train == 7, :, :]
+        force_single_channel = True
         x_train = process_for_mnist(x_train)
         x_test = process_for_mnist(x_test)
 
@@ -37,7 +39,7 @@ def main(args):
 
     architecture = args.disc_arch
 
-    gen = build_generator(noise_size, img_shape)
+    gen = build_generator(noise_size, img_shape, force_single_channel)
     disc = build_discriminator(architecture, img_shape, opt)
 
     run_experiment(gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir)
