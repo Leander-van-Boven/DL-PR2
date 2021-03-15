@@ -2,21 +2,23 @@ import numpy as np
 import os
 import datetime
 import csv
+import tensorflow as tf
 
 from tensorflow.keras import callbacks
 from tensorflow.keras.callbacks import TensorBoard
 from gan import combine_model
 
 
-def run_experiment(gen, disc, X_train, opt, epochs, batch_size, log_dir):
+def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_dir):
     # Rescale X_train to [-1, 1]?
 
-    noise_size = gen.layers[0].shape
+    noise_size = latent_dim
 
     valid = np.ones((batch_size, 1))
     fake = np.zeros((batch_size, 1))
 
-    combined = combine_model(gen, disc)
+    disc.trainable = False
+    combined = combine_model(gen, disc, latent_dim)
     combined.compile(
         optimizer=opt,
         loss='binary_crossentropy',
@@ -33,8 +35,8 @@ def run_experiment(gen, disc, X_train, opt, epochs, batch_size, log_dir):
 
     for epoch in range(epochs):
         # Train discriminator
-        idx = np.random.randint(0, X_train.shape[0], batch_size)
-        imgs = X_train[idx]
+        idx = np.random.randint(0, x_train.shape[0], batch_size)
+        imgs = x_train[idx]
 
         noise = np.random.normal(0, 1, (batch_size, noise_size))
         gen_imgs = gen.predict(noise)
@@ -46,13 +48,14 @@ def run_experiment(gen, disc, X_train, opt, epochs, batch_size, log_dir):
         # Train generator
         g_loss = combined.train_on_batch(noise, valid)
 
-        # TODO: write logs to log_file somewhere around here. do we want to use
-        #       a plain csv writer or a keras callback?
-        with open(log_file_name, mode='w') as csv_file:
+        # write results to csv file
+        with open(log_file, mode='a+') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-            csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss])
+            csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
 
+        # print(type(epoch), type(d_loss[0]), type(100*d_loss[1]), type(g_loss[0]))
+        # print(g_loss[0], g_loss[1])
 
-        print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
-              (epoch, d_loss[0], 100*d_loss[1], g_loss))
+        # print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
+        #       (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))

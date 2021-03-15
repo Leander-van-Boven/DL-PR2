@@ -114,6 +114,8 @@ class DCGAN():
         X_train = X_train / 127.5 - 1.
         X_train = np.expand_dims(X_train, axis=3)
 
+        print(X_train.shape, type(X_train))
+
         # Adversarial ground truths
         valid = np.ones((batch_size, 1))
         fake = np.zeros((batch_size, 1))
