@@ -32,9 +32,14 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_
     run_time = run_time.replace(':', '-')
     # might wanna include some details about the run here as well so we can
     # identify runs easily. does python have a nameof() operator?
-    log_file_name = run_time + '-training.log'
+#    log_file_name = run_time + '-training.log'
 
-    log_file = os.path.join(log_dir, log_file_name)
+    log_path = os.path.join(log_dir, run_time)
+    img_path = os.path.join(log_path, "images")
+    os.mkdir(log_path)
+    os.mkdir(img_path)
+
+    log_file = os.path.join(log_path, "training.csv")
 
     def save_imgs(epoch):
         r, c = 5, 5
@@ -51,7 +56,10 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_
                 axs[i,j].imshow(gen_imgs[cnt, :,:,:])  # , cmap='gray')
                 axs[i,j].axis('off')
                 cnt += 1
-        fig.savefig("../images/img_%d.png" % epoch)
+
+        
+        # filename = os.path.join(, "", , ".png")
+        fig.savefig(f"{img_path}/img_{epoch}.png")
         plt.close()
 
     for epoch in range(epochs):

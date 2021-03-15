@@ -18,7 +18,7 @@ from set_session import initialize_session
 
 
 def main(args):
-    initialize_session()
+    # initialize_session()
 
     noise_size = args.latent_dim
     opt = args.optimizer
@@ -104,7 +104,7 @@ if __name__ == "__main__":
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='../',
+        '-l', '--log_dir', type=str, default='./',
         help='output location for training and test logs'
     )
 
