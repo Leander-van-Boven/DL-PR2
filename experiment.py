@@ -84,7 +84,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_
 
             csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
 
-        if epoch % 10 == 0:
+        if epoch % 50 == 0:
             save_imgs(epoch)
 
         # print(type(epoch), type(d_loss[0]), type(100*d_loss[1]), type(g_loss[0]))

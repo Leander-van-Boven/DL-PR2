@@ -45,7 +45,8 @@ def main(args):
 def process_for_mnist(imgs):
     imgs = np.expand_dims(imgs, -1)
     imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
-    imgs = tf.image.resize(imgs, [76,76]) #InceptionResNet needs at least 75x75 + needs to be divisible by 4
+    #InceptionResNet needs at least 75x75 + needs to be divisible by 4
+    imgs = tf.image.resize(imgs, [76,76], method=tf.image.ResizeMethod.BICUBIC)
     imgs = tf.image.grayscale_to_rgb(imgs)
     imgs = np.array(imgs)
 
