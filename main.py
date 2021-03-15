@@ -2,6 +2,7 @@ import argparse
 import logging
 import numpy as np
 import tensorflow as tf
+from functools import partial
 from numpy.core.shape_base import atleast_3d
 
 from tensorflow.keras.applications import InceptionResNetV2
@@ -12,9 +13,10 @@ from tensorflow.keras.datasets import mnist, cifar10
 from gan import build_generator, build_discriminator
 from experiment import run_experiment
 
+from set_session import initialize_session
+
 
 def main(args):
-    
     noise_size = args.latent_dim
     opt = args.optimizer
     epochs = args.epochs
@@ -48,6 +50,8 @@ def process_for_mnist(imgs):
 
 
 if __name__ == "__main__":
+    def get_dict_val(dict, val):
+        return dict[val]
 
     datasets = {
         "mnist": mnist,     # (28, 28, 1)
@@ -72,16 +76,16 @@ if __name__ == "__main__":
         help='verbosity level. 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL'
     )
     parser.add_argument(
-        '-d', '--dataset', type=datasets.get, choices=datasets.keys(),
+        '-d', '--dataset', type=partial(get_dict_val, datasets), choices=datasets.keys(),
         default='mnist', help='the dataset to use in the experiment'
     )
     parser.add_argument(
-        '-a', '--disc_arch', type=disc_architectures.get,
+        '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures),
         choices=disc_architectures.keys(), default='efnb0',
         help='the architecture to use for the discriminator'
     )
     parser.add_argument(
-        '-o', '--optimizer', type=optimizers.get, choices=optimizers.keys(),
+        '-o', '--optimizer', type=partial(get_dict_val, optimizers), choices=optimizers.keys(),
         default='adam', help='the optimizer to use'
     )
     parser.add_argument(
@@ -97,7 +101,7 @@ if __name__ == "__main__":
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='../', 
+        '-l', '--log_dir', type=str, default='../',
         help='output location for training and test logs'
     )
 
@@ -111,4 +115,5 @@ if __name__ == "__main__":
         format='[%(asctime)s] (%(levelno)s) %(message)s'
     )
 
+    # initialize_session()
     main(args)
