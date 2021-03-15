@@ -1,6 +1,6 @@
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Activation, BatchNormalization, Conv2D
-from tensorflow.keras.layers import Dense, Input, Reshape, UpSampling2D
+from tensorflow.keras.layers import Dense, Input, Reshape, UpSampling2D, Flatten
 
 
 def build_generator(latent_dim, img_size):
@@ -45,19 +45,24 @@ def build_discriminator(architecture, img_shape, opt):
     )
     cnn_disc.trainable = False
 
-    bool_layer = Dense(1, activation='sigmoid')(cnn_disc.output)
+    flattened = Flatten()(cnn_disc.output)
+
+    bool_layer = Dense(1, activation='sigmoid')(flattened)
     disc = Model(inputs=cnn_disc.input, outputs=bool_layer)
 
+    disc.summary()
+
     disc.compile(
-        optimiser=opt,
+        optimizer=opt,
         loss='binary_crossentropy',
         metrics=['accuracy']
     )
+
     return disc
 
 
-def combine_model(gen, disc):
-    noise = Input(shape=gen.layers[0].shape)
+def combine_model(gen, disc, latent_dim):
+    noise = Input(shape=latent_dim)
     img = gen(noise)
     disc.trainable = False
     valid = disc(img)

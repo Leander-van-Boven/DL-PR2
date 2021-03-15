@@ -1,6 +1,8 @@
 import argparse
 import logging
 import numpy as np
+import tensorflow as tf
+from numpy.core.shape_base import atleast_3d
 
 from tensorflow.keras.applications import InceptionResNetV2
 from tensorflow.keras.applications.efficientnet\
@@ -12,25 +14,37 @@ from experiment import run_experiment
 
 
 def main(args):
-    # TODO: needs cmd args, these values are out of thin air
-    noise_size = tuple(args.input_size)
+    
+    noise_size = args.latent_dim
     opt = args.optimizer
     epochs = args.epochs
     batch_size = args.batch
 
-    (X_train, y_train), (X_test, y_test) = args.dataset.load_data()
-    # Make sure (row, col) becomes (row, col, chan)
-    if len(X_train.shape[1:]) == 2:
-        X_train = np.expand_dims(X_train, -1)
-        X_test = np.expand_dims(X_test, -1)
-    img_shape = X_train.shape[1:]
+    (x_train, _), (x_test, _) = args.dataset.load_data()
+
+    # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
+    if len(x_train.shape[1:]) == 2:
+        x_train = process_for_mnist(x_train)
+        x_test = process_for_mnist(x_test)
+
+    img_shape = x_train.shape[1:]
 
     architecture = args.disc_arch
 
     gen = build_generator(noise_size, img_shape)
-    disc = build_discriminator(architecture, img_shape)
+    disc = build_discriminator(architecture, img_shape, opt)
 
-    run_experiment(gen, disc, X_train, opt, epochs, batch_size, args.log_dir)
+    run_experiment(gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir)
+
+
+def process_for_mnist(imgs):
+    imgs = np.expand_dims(imgs, -1)
+    imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
+    imgs = tf.image.resize(imgs, [76,76]) #InceptionResNet needs at least 75x75 + needs to be divisible by 4
+    imgs = tf.image.grayscale_to_rgb(imgs)
+    imgs = np.array(imgs)
+
+    return imgs
 
 
 if __name__ == "__main__":
@@ -83,7 +97,7 @@ if __name__ == "__main__":
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='~/', 
+        '-l', '--log_dir', type=str, default='./', 
         help='output location for training and test logs'
     )
 
