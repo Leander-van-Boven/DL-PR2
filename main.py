@@ -25,10 +25,11 @@ def main(args):
     epochs = args.epochs
     batch_size = args.batch
 
-    (x_train, _), (x_test, _) = args.dataset.load_data()
+    (x_train, y_train), (x_test, _) = args.dataset.load_data()
 
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
     if len(x_train.shape[1:]) == 2:
+        x_train = x_train[y_train == 7, :, :]
         x_train = process_for_mnist(x_train)
         x_test = process_for_mnist(x_test)
 
@@ -45,7 +46,7 @@ def main(args):
 def process_for_mnist(imgs):
     imgs = np.expand_dims(imgs, -1)
     imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
-    imgs = tf.image.resize(imgs, [76,76]) #InceptionResNet needs at least 75x75 + needs to be divisible by 4
+    imgs = tf.image.resize(imgs, [76, 76]) #InceptionResNet needs at least 75x75 + needs to be divisible by 4
     imgs = tf.image.grayscale_to_rgb(imgs)
     imgs = np.array(imgs)
 

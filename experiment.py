@@ -25,7 +25,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_
         loss='binary_crossentropy',
         metrics=['accuracy']
     )
-    combined.summary()
+    # combined.summary()
 
     # prepare log output file. files start with YYYY-MM-DDTHH:MM
     run_time = datetime.datetime.now().isoformat(timespec='minutes')
