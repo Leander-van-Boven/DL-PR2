@@ -1,9 +1,9 @@
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Activation, BatchNormalization, Conv2D
-from tensorflow.keras.layers import Dense, Input, Reshape, UpSampling2D, Flatten
+from tensorflow.keras.layers import Dense, Input, Reshape
+from tensorflow.keras.layers import UpSampling2D, Flatten
 from tensorflow.keras.layers import Lambda
-
 
 
 def build_generator(latent_dim, img_size, force_single_channel=False):
@@ -34,7 +34,7 @@ def build_generator(latent_dim, img_size, force_single_channel=False):
     model.add(Conv2D(channels, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
     if force_single_channel:
-        c = tf.constant([1,1,1,img_chan], tf.int32)
+        c = tf.constant([1, 1, 1, img_chan], tf.int32)
         model.add(Lambda(
             lambda a : tf.tile(a, c)
         ))

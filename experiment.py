@@ -10,9 +10,9 @@ from tensorflow.keras.callbacks import TensorBoard
 from gan import combine_model
 
 
-def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_dir):
+def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
+                   latent_dim, log_dir):
     # Rescale X_train to [-1, 1]?
-
     noise_size = latent_dim
 
     valid = np.ones((batch_size, 1))
@@ -49,8 +49,8 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i,j].imshow(gen_imgs[cnt, :,:,:])  # , cmap='gray')
-                axs[i,j].axis('off')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, :])  # , cmap='gray')
+                axs[i, j].axis('off')
                 cnt += 1
         fig.savefig("../images/img_%d.png" % epoch)
         plt.close()
@@ -69,19 +69,21 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size, latent_dim, log_
 
         # Train generator
         g_loss = combined.train_on_batch(noise, valid)
-        print(f"epoch: {epoch}\t d_loss_real: {d_loss_real[0]:.5f}\t d_loss_fake: {d_loss_fake[0]:.5f}\t g_loss: {g_loss[0]:.5f}")
+        print(f"epoch: {epoch}\t d_loss_real: {d_loss_real[0]:.5f}\t" +
+              f"d_loss_fake: {d_loss_fake[0]:.5f}\t " + 
+              f"g_loss: {g_loss[0]:.5f}")
 
         # write results to csv file
         with open(log_file, mode='a+') as csv_file:
-            csv_writer = csv.writer(csv_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            csv_writer = csv.writer(
+                csv_file, delimiter=',', quotechar='"',
+                quoting=csv.QUOTE_MINIMAL
+            )
 
             csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
 
         if epoch % 10 == 0:
             save_imgs(epoch)
-
-        # print(type(epoch), type(d_loss[0]), type(100*d_loss[1]), type(g_loss[0]))
-        # print(g_loss[0], g_loss[1])
 
         # print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
         #       (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
