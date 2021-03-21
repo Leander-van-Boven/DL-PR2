@@ -130,7 +130,7 @@ if __name__ == "__main__":
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='./',
+        '-l', '--log_dir', type=str, default='../',
         help='output location for training and test logs'
     )
     parser.add_argument(
