@@ -1,11 +1,12 @@
 import argparse
 import logging
+import os
 import numpy as np
 import tensorflow as tf
 from functools import partial
 from numpy.core.shape_base import atleast_3d
 
-from tensorflow.keras.applications import InceptionResNetV2
+from tensorflow.keras.applications import InceptionResNetV2, ResNet152V2
 from tensorflow.keras.applications.efficientnet\
     import EfficientNetB0, EfficientNetB7
 from tensorflow.keras.datasets import mnist, cifar10
@@ -19,7 +20,7 @@ from set_session import initialize_session
 
 
 def main(args):
-    # initialize_session()
+    initialize_session()
 
     noise_size = args.latent_dim
     opt = args.optimizer
@@ -31,13 +32,14 @@ def main(args):
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
     force_single_channel = False
     if len(x_train.shape[1:]) == 2:
-        x_train = x_train[y_train == 7, :, :]
+        # x_train = x_train[y_train == 7, :, :]
         force_single_channel = True
         x_train = process_for_mnist(x_train)
         x_test = process_for_mnist(x_test)
 
-    img_shape = x_train.shape[1:]
+    # show_training_image(x_train)
 
+    img_shape = x_train.shape[1:]
     architecture = args.disc_arch
 
     gen = build_generator(noise_size, img_shape, force_single_channel)
@@ -46,17 +48,31 @@ def main(args):
     else:
         disc = build_discriminator(architecture, img_shape, opt)
 
-    run_experiment(gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir)
+    run_experiment(
+        gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir,
+        args.log_interval
+    )
+
+
+def show_training_image(x_train):
+    import matplotlib.pyplot as plt
+    _, axs = plt.subplots()
+    axs.imshow(
+        x_train[np.random.randint(x_train.shape[0]), :, :, :].astype(np.uint8)
+    )
+    plt.show()
+    exit()
 
 
 def process_for_mnist(imgs):
     imgs = np.expand_dims(imgs, -1)
     imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
-    #InceptionResNet needs at least 75x75 + needs to be divisible by 4
-    imgs = tf.image.resize(imgs, [76,76], method=tf.image.ResizeMethod.BICUBIC)
+    # InceptionResNet needs at least 75x75 + needs to be divisible by 4
+    # imgs = tf.image.resize(imgs, [76, 76],
+    #                        method=tf.image.ResizeMethod.LANCZOS3)
+    imgs = tf.image.pad_to_bounding_box(imgs, 2, 2, 32, 32)
     imgs = tf.image.grayscale_to_rgb(imgs)
     imgs = np.array(imgs)
-
     return imgs
 
 
@@ -70,7 +86,8 @@ if __name__ == "__main__":
     }
 
     disc_architectures = {
-        "irv2": InceptionResNetV2,
+        # "irv2": InceptionResNetV2,
+        "r152v2": ResNet152V2,
         "efnb0": EfficientNetB0,
         "efnb7": EfficientNetB7,
         "dcgan": "dcgan"
@@ -84,17 +101,17 @@ if __name__ == "__main__":
     }
 
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '-v', '--verbosity', type=int, choices=[1, 2, 3, 4, 5], default=2,
-        help='verbosity level. 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL'
-    )
+    # parser.add_argument(
+    #     '-v', '--verbosity', type=int, choices=[1, 2, 3, 4, 5], default=2,
+    #     help='verbosity level. 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL'
+    # )
     parser.add_argument(
         '-d', '--dataset', type=partial(get_dict_val, datasets),
         default='mnist', help='the dataset to use in the experiment'
     )
     parser.add_argument(
-        '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures), default='efnb0',
-        help='the architecture to use for the discriminator'
+        '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures),
+        default='efnb0', help='the architecture to use for the discriminator'
     )
     parser.add_argument(
         '-o', '--optimizer', type=partial(get_dict_val, optimizers),
@@ -115,6 +132,10 @@ if __name__ == "__main__":
     parser.add_argument(
         '-l', '--log_dir', type=str, default='./',
         help='output location for training and test logs'
+    )
+    parser.add_argument(
+        '-i', '--log_interval', type=float, default=.1,
+        help='percentage of epochs on which to save the current images'
     )
 
     args = parser.parse_args()

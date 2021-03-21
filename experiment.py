@@ -11,7 +11,7 @@ from gan import combine_model
 
 
 def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
-                   latent_dim, log_dir):
+                   latent_dim, log_dir, log_interval):
     # Rescale X_train to [-1, 1]?
     noise_size = latent_dim
 
@@ -90,7 +90,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
             csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
 
-        if epoch % 50 == 0:
+        if epoch % int(log_interval * epochs) == 0:
             save_imgs(epoch)
 
         # print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
