@@ -13,12 +13,13 @@ from tensorflow.keras.optimizers import Adam
 
 from gan import build_generator, build_discriminator
 from experiment import run_experiment
+from dcgan_disc import build_dcgan_discriminator
 
 from set_session import initialize_session
 
 
 def main(args):
-    initialize_session()
+    # initialize_session()
 
     noise_size = args.latent_dim
     opt = args.optimizer
@@ -40,7 +41,10 @@ def main(args):
     architecture = args.disc_arch
 
     gen = build_generator(noise_size, img_shape, force_single_channel)
-    disc = build_discriminator(architecture, img_shape, opt)
+    if architecture == 'dcgan':
+        disc = build_dcgan_discriminator(img_shape, opt)
+    else:
+        disc = build_discriminator(architecture, img_shape, opt)
 
     run_experiment(gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir)
 
@@ -48,7 +52,8 @@ def main(args):
 def process_for_mnist(imgs):
     imgs = np.expand_dims(imgs, -1)
     imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
-    imgs = tf.image.resize(imgs, [76, 76]) #InceptionResNet needs at least 75x75 + needs to be divisible by 4
+    #InceptionResNet needs at least 75x75 + needs to be divisible by 4
+    imgs = tf.image.resize(imgs, [76,76], method=tf.image.ResizeMethod.BICUBIC)
     imgs = tf.image.grayscale_to_rgb(imgs)
     imgs = np.array(imgs)
 
@@ -67,7 +72,8 @@ if __name__ == "__main__":
     disc_architectures = {
         "irv2": InceptionResNetV2,
         "efnb0": EfficientNetB0,
-        "efnb7": EfficientNetB7
+        "efnb7": EfficientNetB7,
+        "dcgan": "dcgan"
     }
 
     # TODO: Change string value to class constructor, add argument
@@ -107,7 +113,7 @@ if __name__ == "__main__":
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='../',
+        '-l', '--log_dir', type=str, default='./',
         help='output location for training and test logs'
     )
 

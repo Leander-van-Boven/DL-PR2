@@ -32,9 +32,14 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
     run_time = run_time.replace(':', '-')
     # might wanna include some details about the run here as well so we can
     # identify runs easily. does python have a nameof() operator?
-    log_file_name = run_time + '-training.log'
+#    log_file_name = run_time + '-training.log'
 
-    log_file = os.path.join(log_dir, log_file_name)
+    log_path = os.path.join(log_dir, run_time)
+    img_path = os.path.join(log_path, "images")
+    os.mkdir(log_path)
+    os.mkdir(img_path)
+
+    log_file = os.path.join(log_path, "training.csv")
 
     def save_imgs(epoch):
         os.makedirs('../images', exist_ok=True)
@@ -52,7 +57,10 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
                 axs[i, j].imshow(gen_imgs[cnt, :, :, :])  # , cmap='gray')
                 axs[i, j].axis('off')
                 cnt += 1
-        fig.savefig("../images/img_%d.png" % epoch)
+
+        
+        # filename = os.path.join(, "", , ".png")
+        fig.savefig(f"{img_path}/img_{epoch}.png")
         plt.close()
 
     for epoch in range(epochs):
@@ -82,7 +90,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
             csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
 
-        if epoch % 10 == 0:
+        if epoch % 50 == 0:
             save_imgs(epoch)
 
         # print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
