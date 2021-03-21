@@ -48,9 +48,11 @@ def main(args):
     else:
         disc = build_discriminator(architecture, img_shape, opt)
 
+    log_interval = epochs // int(epochs * args.log_interval)
+
     run_experiment(
         gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir,
-        args.log_interval
+        log_interval
     )
 
 
@@ -135,7 +137,7 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '-i', '--log_interval', type=float, default=.1,
-        help='percentage of epochs on which to save the current images'
+        help='fraction of epochs on which to save the current images'
     )
 
     args = parser.parse_args()
