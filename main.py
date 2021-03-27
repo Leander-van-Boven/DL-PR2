@@ -28,7 +28,7 @@ def main(args):
     epochs = args.epochs
     batch_size = args.batch
 
-    (x_train, y_train), (x_test, _) = args.dataset.load_data()
+    (x_train, _), (x_test, _) = args.dataset.load_data()
 
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
     force_single_channel = False
@@ -68,7 +68,9 @@ def show_training_image(x_train):
 
 
 def process_for_mnist(imgs):
+    # append a dimension at the end
     imgs = np.expand_dims(imgs, -1)
+    # convert to tensor for image processing
     imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
     # InceptionResNet needs at least 75x75 + needs to be divisible by 4
     # imgs = tf.image.resize(imgs, [76, 76],
@@ -104,45 +106,42 @@ if __name__ == "__main__":
     }
 
     parser = argparse.ArgumentParser()
-    # parser.add_argument(
-    #     '-v', '--verbosity', type=int, choices=[1, 2, 3, 4, 5], default=2,
-    #     help='verbosity level. 1=DEBUG, 2=INFO, 3=WARNING, 4=ERROR, 5=CRITICAL'
-    # )
-    parser.add_argument(
-        '-d', '--dataset', type=partial(get_dict_val, datasets),
-        default='mnist', help='the dataset to use in the experiment'
-    )
+    
     parser.add_argument(
         '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures),
         default='efnb0', help='the architecture to use for the discriminator'
-    )
-    parser.add_argument(
-        '-o', '--optimizer', type=partial(get_dict_val, optimizers),
-        default='adam', help='the optimizer to use'
-    )
-    parser.add_argument(
-        '-s', '--latent_dim', type=int, default=100,
-        help='the dimensionality of the latent space used for input noise'
     )
     parser.add_argument(
         '-b', '--batch', type=int, choices=[i*8 for i in range(1, 33)],
         default=32, help='the batch size'
     )
     parser.add_argument(
+        '-d', '--dataset', type=partial(get_dict_val, datasets),
+        default='mnist', help='the dataset to use in the experiment'
+    )
+    parser.add_argument(
         '-e', '--epochs', type=int, default=500,
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='../',
-        help='output location for training and test logs'
+        '-g', '--gpu_session', type=bool, default=False,
+        help='whether the program should manually set the gpu session'
     )
     parser.add_argument(
         '-i', '--log_interval', type=float, default=.1,
         help='fraction of epochs on which to save the current images'
     )
     parser.add_argument(
-        '-s', '--init_session', type=bool, default=False,
-        help='whether the program should manually set the gpu session'
+        '-o', '--optimizer', type=partial(get_dict_val, optimizers),
+        default='adam', help='the optimizer to use'
+    )
+    parser.add_argument(
+        '-l', '--log_dir', type=str, default='../',
+        help='output location for training and test logs'
+    )
+    parser.add_argument(
+        '-s', '--latent_dim', type=int, default=100,
+        help='the dimensionality of the latent space used for input noise'
     )
 
     args = parser.parse_args()
