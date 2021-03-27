@@ -27,13 +27,13 @@ def main(args):
     opt = args.optimizer
     epochs = args.epochs
     batch_size = args.batch
+    architecture = args.disc_arch
 
     (x_train, _), (x_test, _) = args.dataset.load_data()
 
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
     force_single_channel = False
     if len(x_train.shape[1:]) == 2:
-        # x_train = x_train[y_train == 7, :, :]
         force_single_channel = True
         x_train = process_for_mnist(x_train)
         x_test = process_for_mnist(x_test)
@@ -41,7 +41,6 @@ def main(args):
     # show_training_image(x_train)
 
     img_shape = x_train.shape[1:]
-    architecture = args.disc_arch
 
     gen = build_generator(noise_size, img_shape, force_single_channel)
     if architecture == 'dcgan':
@@ -49,7 +48,8 @@ def main(args):
     else:
         disc = build_discriminator(architecture, img_shape, opt)
 
-    log_interval = epochs // int(epochs * args.log_interval)
+    # save an image on a fraction of the log interval
+    log_interval = int(epochs * args.log_interval)
 
     run_experiment(
         gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir,
@@ -72,13 +72,37 @@ def process_for_mnist(imgs):
     imgs = np.expand_dims(imgs, -1)
     # convert to tensor for image processing
     imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
-    # InceptionResNet needs at least 75x75 + needs to be divisible by 4
-    # imgs = tf.image.resize(imgs, [76, 76],
-    #                        method=tf.image.ResizeMethod.LANCZOS3)
+    # add padding
     imgs = tf.image.pad_to_bounding_box(imgs, 2, 2, 32, 32)
+    # convert 1d to 3d
     imgs = tf.image.grayscale_to_rgb(imgs)
+    # convert back to np array
     imgs = np.array(imgs)
     return imgs
+
+
+def float_range(mini,maxi):
+    """Return function handle of an argument type function for 
+       ArgumentParser checking a float range: mini <= arg <= maxi
+         mini - maximum acceptable argument
+         maxi - maximum acceptable argument
+         
+       Taken from https://stackoverflow.com/a/64259328/4545692"""
+
+    # Define the function with default arguments
+    def float_range_checker(arg):
+        """New Type function for argparse - a float within predefined range."""
+
+        try:
+            f = float(arg)
+        except ValueError:    
+            raise argparse.ArgumentTypeError("must be a floating point number")
+        if f < mini or f > maxi:
+            raise argparse.ArgumentTypeError("must be in range [" + str(mini) + " .. " + str(maxi)+"]")
+        return f
+
+    # Return function handle to checking function
+    return float_range_checker
 
 
 if __name__ == "__main__":
@@ -91,7 +115,6 @@ if __name__ == "__main__":
     }
 
     disc_architectures = {
-        # "irv2": InceptionResNetV2,
         "r152v2": ResNet152V2,
         "efnb0": EfficientNetB0,
         "efnb7": EfficientNetB7,
@@ -106,7 +129,7 @@ if __name__ == "__main__":
     }
 
     parser = argparse.ArgumentParser()
-    
+
     parser.add_argument(
         '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures),
         default='efnb0', help='the architecture to use for the discriminator'
@@ -124,12 +147,13 @@ if __name__ == "__main__":
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-g', '--gpu_session', type=bool, default=False,
+        '-g', '--init_session', type=bool, default=False,
         help='whether the program should manually set the gpu session'
     )
     parser.add_argument(
-        '-i', '--log_interval', type=float, default=.1,
-        help='fraction of epochs on which to save the current images'
+        '-i', '--log_interval', type=float_range(0, 0.5), default=.05,
+        help='fraction of epochs on which to save the current images.\
+              setting this to 0 will save no images.'
     )
     parser.add_argument(
         '-o', '--optimizer', type=partial(get_dict_val, optimizers),
@@ -145,13 +169,5 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
-    # note(Ramon): this is nice, but when running on Peregrine, the entire
-    # terminal output of the program is saved to a log file by default so I'm
-    # not sure it's necessary
-    # logging.basicConfig(
-    #     level=args.verbosity, datefmt='%I:%M:%S',
-    #     format='[%(asctime)s] (%(levelno)s) %(message)s'
-    # )
 
     main(args)
