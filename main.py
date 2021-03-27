@@ -20,7 +20,8 @@ from set_session import initialize_session
 
 
 def main(args):
-    initialize_session()
+    if args.init_session:
+        initialize_session()
 
     noise_size = args.latent_dim
     opt = args.optimizer
@@ -136,6 +137,10 @@ if __name__ == "__main__":
     parser.add_argument(
         '-i', '--log_interval', type=float, default=.1,
         help='percentage of epochs on which to save the current images'
+    )
+    parser.add_argument(
+        '-s', '--init_session', type=bool, default=False,
+        help='whether the program should manually set the gpu session'
     )
 
     args = parser.parse_args()
