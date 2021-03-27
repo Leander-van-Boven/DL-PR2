@@ -90,8 +90,10 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
             csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
 
-        if epoch % int(log_interval * epochs) == 0:
+        if epoch % log_interval == 0:
             save_imgs(epoch)
+
+    save_imgs(epochs)
 
         # print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
         #       (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
