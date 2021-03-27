@@ -94,6 +94,3 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
             save_imgs(epoch)
 
     save_imgs(epochs)
-
-        # print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
-        #       (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
