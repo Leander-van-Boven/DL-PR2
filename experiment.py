@@ -60,7 +60,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
         
         # filename = os.path.join(, "", , ".png")
-        fig.savefig(f"{img_path}/img_{epoch}.png")
+        fig.savefig(f"{img_path}/{epoch:05}.png")
         plt.close()
 
     for epoch in range(epochs):
