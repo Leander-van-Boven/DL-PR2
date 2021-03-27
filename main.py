@@ -98,7 +98,9 @@ def float_range(mini,maxi):
         except ValueError:    
             raise argparse.ArgumentTypeError("must be a floating point number")
         if f < mini or f > maxi:
-            raise argparse.ArgumentTypeError("must be in range [" + str(mini) + " .. " + str(maxi)+"]")
+            raise argparse.ArgumentTypeError(
+                "must be in range [" + str(mini) + " .. " + str(maxi)+"]"
+            )
         return f
 
     # Return function handle to checking function
@@ -128,7 +130,9 @@ if __name__ == "__main__":
         'mse': 'mse'
     }
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
 
     parser.add_argument(
         '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures),
@@ -160,7 +164,7 @@ if __name__ == "__main__":
         default='adam', help='the optimizer to use'
     )
     parser.add_argument(
-        '-l', '--log_dir', type=str, default='../',
+        '-l', '--log_dir', type=str, default='./experiments/',
         help='output location for training and test logs'
     )
     parser.add_argument(

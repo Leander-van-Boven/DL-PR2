@@ -36,13 +36,13 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
     log_path = os.path.join(log_dir, run_time)
     img_path = os.path.join(log_path, "images")
-    os.mkdir(log_path)
-    os.mkdir(img_path)
+    os.makedirs(log_path, exist_ok=True)
+    os.makedirs(img_path, exist_ok=True)
 
     log_file = os.path.join(log_path, "training.csv")
 
     def save_imgs(epoch):
-        os.makedirs('../images', exist_ok=True)
+        # os.makedirs('../images', exist_ok=True)
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, latent_dim))
         gen_imgs = gen.predict(noise)
