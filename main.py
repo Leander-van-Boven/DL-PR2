@@ -10,7 +10,7 @@ from tensorflow.keras.applications import InceptionResNetV2, ResNet152V2
 from tensorflow.keras.applications.efficientnet\
     import EfficientNetB0, EfficientNetB7
 from tensorflow.keras.datasets import mnist, cifar10
-from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.optimizers import Adam, Nadam
 
 from gan import build_generator, build_discriminator
 from experiment import run_experiment
@@ -126,7 +126,8 @@ if __name__ == "__main__":
     # TODO: Change string value to class constructor, add argument
     #       for optimizer parameters (*args, **kwargs)
     optimizers = {
-        'adam': Adam(0.0002, 0.5),
+        'adam': Adam(0.01, 0.9, 0.9), # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
+        'nadam': Nadam(0.01, 0.9, 0.9),
         'mse': 'mse'
     }
 
