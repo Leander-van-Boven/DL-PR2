@@ -11,7 +11,7 @@ from gan import combine_model
 
 
 def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
-                   latent_dim, log_dir, log_interval):
+                   latent_dim, log_path, img_path, log_interval):
     # Rescale X_train to [-1, 1]?
     noise_size = latent_dim
 
@@ -26,18 +26,6 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
         metrics=['accuracy']
     )
     # combined.summary()
-
-    # prepare log output file. files start with YYYY-MM-DDTHH:MM
-    run_time = datetime.datetime.now().isoformat(timespec='minutes')
-    run_time = run_time.replace(':', '-')
-    # might wanna include some details about the run here as well so we can
-    # identify runs easily. does python have a nameof() operator?
-#    log_file_name = run_time + '-training.log'
-
-    log_path = os.path.join(log_dir, run_time)
-    img_path = os.path.join(log_path, "images")
-    os.makedirs(log_path, exist_ok=True)
-    os.makedirs(img_path, exist_ok=True)
 
     log_file = os.path.join(log_path, "training.csv")
 

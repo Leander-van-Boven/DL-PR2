@@ -1,6 +1,8 @@
 import argparse
+import csv
 import logging
 import os
+import datetime
 import numpy as np
 import tensorflow as tf
 from functools import partial
@@ -29,6 +31,13 @@ def main(args):
     batch_size = args.batch
     architecture = args.disc_arch
 
+    # Create output directory
+    (log_path, img_path) = prepare_directory(args.log_dir)
+
+    # Write experimental setup to file
+    log_setup(log_path, args)
+
+    # Load data set
     (x_train, _), (x_test, _) = args.dataset.load_data()
 
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
@@ -52,8 +61,8 @@ def main(args):
     log_interval = int(epochs * args.log_interval)
 
     run_experiment(
-        gen, disc, x_train, opt, epochs, batch_size, noise_size, args.log_dir,
-        log_interval
+        gen, disc, x_train, opt, epochs, batch_size, noise_size, log_path, 
+        img_path, log_interval
     )
 
 
@@ -79,6 +88,26 @@ def process_for_mnist(imgs):
     # convert back to np array
     imgs = np.array(imgs)
     return imgs
+
+
+def prepare_directory(log_dir):
+    # prepare log output directory. name is YYYY-MM-DDTHH:MM
+    run_time = datetime.datetime.now().isoformat(timespec='minutes')
+    run_time = run_time.replace(':', '-')
+
+    log_path = os.path.join(log_dir, run_time)
+    img_path = os.path.join(log_path, "images")
+    os.makedirs(log_path, exist_ok=True)
+    os.makedirs(img_path, exist_ok=True)
+
+    return log_path, img_path
+
+
+def log_setup(log_path, args):
+    # Print experiment setup for reference
+    setup_file = os.path.join(log_path, "setup.txt")
+    with open(setup_file, mode='w') as file:
+        file.writelines([f"{key:20} = {value}\n" for key, value in vars(args).items()])
 
 
 def float_range(mini,maxi):
