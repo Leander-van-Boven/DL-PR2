@@ -11,11 +11,12 @@ from keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def build_dcgan_discriminator(img_shape, opt):
     model = Sequential()
 
     model.add(Conv2D(32, kernel_size=3, strides=2,
-                        input_shape=img_shape, padding="same"))
+                     input_shape=img_shape, padding="same"))
     model.add(LeakyReLU(alpha=0.2))
     model.add(Dropout(0.25))
     model.add(Conv2D(64, kernel_size=3, strides=2, padding="same"))
