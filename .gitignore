@@ -130,3 +130,6 @@ dmypy.json
 
 # macOS directory info files
 .DS_Store
+
+# experiments directory
+/experiments

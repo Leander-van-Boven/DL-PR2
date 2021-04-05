@@ -11,7 +11,7 @@ from gan import combine_model
 
 
 def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
-                   latent_dim, log_dir, log_interval):
+                   latent_dim, log_path, img_path, log_interval):
     # Rescale X_train to [-1, 1]?
     noise_size = latent_dim
 
@@ -27,22 +27,10 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
     )
     # combined.summary()
 
-    # prepare log output file. files start with YYYY-MM-DDTHH:MM
-    run_time = datetime.datetime.now().isoformat(timespec='minutes')
-    run_time = run_time.replace(':', '-')
-    # might wanna include some details about the run here as well so we can
-    # identify runs easily. does python have a nameof() operator?
-#    log_file_name = run_time + '-training.log'
-
-    log_path = os.path.join(log_dir, run_time)
-    img_path = os.path.join(log_path, "images")
-    os.mkdir(log_path)
-    os.mkdir(img_path)
-
     log_file = os.path.join(log_path, "training.csv")
 
     def save_imgs(epoch):
-        os.makedirs('../images', exist_ok=True)
+        # os.makedirs('../images', exist_ok=True)
         r, c = 5, 5
         noise = np.random.normal(0, 1, (r * c, latent_dim))
         gen_imgs = gen.predict(noise)
@@ -60,7 +48,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
         
         # filename = os.path.join(, "", , ".png")
-        fig.savefig(f"{img_path}/img_{epoch}.png")
+        fig.savefig(f"{img_path}/{epoch:05}.png")
         plt.close()
 
     for epoch in range(epochs):
@@ -96,8 +84,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
             csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
 
-        if epoch % int(log_interval * epochs) == 0:
+        if epoch % log_interval == 0:
             save_imgs(epoch)
 
-        # print("%d [D loss: %f, acc.: %.2f%%] [G loss: %f]" %
-        #       (epoch, d_loss[0], 100*d_loss[1], g_loss[0]))
+    save_imgs(epochs)

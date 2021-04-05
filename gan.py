@@ -50,12 +50,13 @@ def build_generator(latent_dim, img_size, force_single_channel=False):
 def build_discriminator(architecture, img_shape, opt):
     cnn_disc = architecture(
         include_top=False,
-        weights="imagenet",
+        weights="imagenet", # maybe try different weights? denser seems better
         input_shape=img_shape,
         pooling=None,
         classifier_activation="softmax"
     )
-    # cnn_disc.trainable = False
+
+    cnn_disc.trainable = False
 
     flattened = Flatten()(cnn_disc.output)
 
