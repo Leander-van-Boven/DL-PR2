@@ -16,8 +16,6 @@ from keras.optimizers import Adam
 import matplotlib.pyplot as plt
 import numpy as np
 
-from set_session import initialize_session
-
 
 class DCGAN():
     def __init__(self):
@@ -176,6 +174,5 @@ class DCGAN():
 
 
 if __name__ == '__main__':
-    initialize_session()
     dcgan = DCGAN()
     dcgan.train(epochs=4000, batch_size=32, save_interval=50)

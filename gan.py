@@ -52,8 +52,8 @@ def build_discriminator(architecture, img_shape, opt):
         include_top=False,
         weights="imagenet", # maybe try different weights? denser seems better
         input_shape=img_shape,
-        pooling=None,
-        classifier_activation="softmax"
+        pooling=None
+        # classifier_activation="softmax"
     )
 
     cnn_disc.trainable = False

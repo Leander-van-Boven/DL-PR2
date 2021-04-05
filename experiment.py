@@ -59,21 +59,23 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
         noise = np.random.normal(0, 1, (batch_size, noise_size))
         gen_imgs = gen.predict(noise)
 
-        fig, axs = plt.subplots(1, 3)
-        im = np.random.randint(imgs.shape[0])
-        for i in range(3):
-            axs[i].imshow(gen_imgs[im, :, :, i], cmap='gray')
-        plt.show()
+        # fig, axs = plt.subplots(1, 3)
+        # im = np.random.randint(imgs.shape[0])
+        # for i in range(3):
+        #     axs[i].imshow(gen_imgs[im, :, :, i], cmap='gray')
+        # plt.show()
 
         d_loss_real = disc.train_on_batch(imgs, valid)
         d_loss_fake = disc.train_on_batch(gen_imgs, fake)
         d_loss = 0.5 * np.add(d_loss_real, d_loss_fake)
+        d_acc = 100*d_loss[1]
 
         # Train generator
         g_loss = combined.train_on_batch(noise, valid)
-        print(f"epoch: {epoch}\t d_loss_real: {d_loss_real[0]:.5f}\t" +
-              f"d_loss_fake: {d_loss_fake[0]:.5f}\t " + 
-              f"g_loss: {g_loss[0]:.5f}")
+        print(f"epoch: {epoch}\td_loss_real: {d_loss_real[0]:.5f}\t" +
+              f"d_loss_fake: {d_loss_fake[0]:.5f}\t")
+        print(f"\t\td_acc: {d_acc:.5f}\t g_loss: {g_loss[0]:.5f}")
+        print("")
 
         # write results to csv file
         with open(log_file, mode='a+') as csv_file:
