@@ -181,7 +181,7 @@ if __name__ == "__main__":
         help='amount of training epochs'
     )
     parser.add_argument(
-        '-g', '--init_session', type=bool, default=False,
+        '-g', '--init_session', action='store_true',
         help='whether the program should manually set the gpu session'
     )
     parser.add_argument(
@@ -203,5 +203,6 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    #input(args)
 
     main(args)
