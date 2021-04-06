@@ -48,6 +48,10 @@ def main(args):
         x_test = process_for_mnist(x_test)
 
     # show_training_image(x_train)
+    noise = tf.random_normal(
+        shape=tf.shape(x_train), mean=0.0, stddev=1, dtype=tf.float32
+    )
+    x_train = tf.add(x_train, noise)
 
     img_shape = x_train.shape[1:]
 
