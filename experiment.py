@@ -13,6 +13,7 @@ from gan import combine_model
 def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
                    latent_dim, log_path, img_path, log_interval):
     # Rescale X_train to [-1, 1]?
+    x_train = (x_train / 127.5) - 1.
     noise_size = latent_dim
 
     valid = np.ones((batch_size, 1))
@@ -72,10 +73,15 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
 
         # Train generator
         g_loss = combined.train_on_batch(noise, valid)
-        print(f"epoch: {epoch}\td_loss_real: {d_loss_real[0]:.5f}\t" +
-              f"d_loss_fake: {d_loss_fake[0]:.5f}\t")
-        print(f"\t\td_acc: {d_acc:.5f}\t g_loss: {g_loss[0]:.5f}")
-        print("")
+        # print(f"epoch: {epoch}\td_loss_real: {d_loss_real[0]:.5f}\t" +
+        #       f"d_loss_fake: {d_loss_fake[0]:.5f}\t")
+        # print(f"\t\td_acc: {d_acc:.5f}\t g_loss: {g_loss[0]:.5f}")
+        # print("")
+
+        print("\n--EPOCH %s--" % epoch)
+        print("d_loss_real, %s" % list(map(str, zip(disc.metrics_names, d_loss_real))))
+        print("d_loss_fake, %s" % list(map(str, zip(disc.metrics_names, d_loss_fake))))
+        print("g_loss     , %s" % list(map(str, zip(combined.metrics_names, g_loss))))
 
         # write results to csv file
         with open(log_file, mode='a+') as csv_file:
