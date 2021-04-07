@@ -80,19 +80,19 @@ def main(args):
 
     img_shape = x_train.shape[1:]
 
-    # Build generator network
-    gen = build_generator(noise_size, img_shape, force_single_channel)
+    # # Build generator network
+    # gen = build_generator(noise_size, img_shape, force_single_channel)
 
-    # Build discriminator network
-    if architecture == 'dcgan':
-        disc = build_dcgan_discriminator(img_shape, opt)
-    else:
-        disc = build_discriminator(architecture, img_shape, opt)
+    # # Build discriminator network
+    # if architecture == 'dcgan':
+    #     disc = build_dcgan_discriminator(img_shape, opt)
+    # else:
+    #     disc = build_discriminator(architecture, img_shape, opt)
 
-    print('GENERATOR')
-    gen.summary()
-    print('\nDISCRIMINATOR')
-    disc.summary()
+    # print('GENERATOR')
+    # gen.summary()
+    # print('\nDISCRIMINATOR')
+    # disc.summary()
 
     # save an image on a fraction of the log interval
     log_interval = int(epochs * args.log_interval)
