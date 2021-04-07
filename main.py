@@ -11,14 +11,19 @@ from numpy.core.shape_base import atleast_3d
 from tensorflow.keras.applications import InceptionResNetV2, ResNet152V2
 from tensorflow.keras.applications.efficientnet\
     import EfficientNetB0, EfficientNetB7
-from tensorflow.keras.datasets import mnist, cifar10
+from tensorflow.keras.datasets import mnist, fashion_mnist, cifar10
+from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam, Nadam
 
 from gan import build_generator, build_discriminator
 from experiment import run_experiment
+from dcgan1 import build_generator1
+from dcgan2 import build_generator2
 from dcgan_disc import build_dcgan_discriminator
 
 from set_session import initialize_session
+
+# TODO: Import files with proper architectures
 
 
 def main(args):
@@ -37,15 +42,17 @@ def main(args):
     # Write experimental setup to file
     log_setup(log_path, args)
 
+    exp_data = mnist if args.dataset == 'digits' else fashion_mnist
+
     # Load data set
-    (x_train, _), (x_test, _) = args.dataset.load_data()
+    (x_train, _), (x_test, _) = exp_data.load_data()
 
     # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
-    force_single_channel = False
-    if len(x_train.shape[1:]) == 2:
-        force_single_channel = True
-        x_train = process_for_mnist(x_train)
-        x_test = process_for_mnist(x_test)
+    # force_single_channel = False
+    # if len(x_train.shape[1:]) == 2:
+    #     force_single_channel = True
+    #     x_train = process_for_mnist(x_train)
+    #     x_test = process_for_mnist(x_test)
 
     # show_training_image(x_train)
 
@@ -58,7 +65,8 @@ def main(args):
         rand_range = args.noise
         noise = 2 * rand_range * np.random.random(x_train.size) - rand_range
         x_train += noise.reshape(x_train.shape)
-        x_train = 2 * ((x_train - x_train.min()) / (x_train.max() - x_train.min())) - 1.
+        x_train = 2 * \
+            ((x_train - x_train.min()) / (x_train.max() - x_train.min())) - 1.
     # show_training_image(x_train, idx)
     # exit()
 
@@ -66,6 +74,9 @@ def main(args):
     #     shape=tf.shape(x_train), mean=0.0, stddev=1, dtype=tf.float32
     # )
     # x_train = tf.add(x_train, noise)
+
+    gen = exec('build_generator%s()' % args.architecture)
+    disc = load_model('./discriminator%s' % args.architecture)
 
     img_shape = x_train.shape[1:]
 
@@ -167,11 +178,6 @@ if __name__ == "__main__":
     def get_dict_val(dict, val):
         return dict[val]
 
-    datasets = {
-        "mnist": mnist,     # (28, 28, 1)
-        "cifar10": cifar10  # (32, 32, 3), CIFAR100 has same shape
-    }
-
     disc_architectures = {
         "r152v2": ResNet152V2,
         "efnb0": EfficientNetB0,
@@ -193,16 +199,16 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        '-a', '--disc_arch', type=partial(get_dict_val, disc_architectures),
-        default='efnb0', help='the architecture to use for the discriminator'
+        '-a', '--architecture', type=int, choices=[1,2], default=1
+        help='the architecture to use'
     )
     parser.add_argument(
         '-b', '--batch', type=int, choices=[i*8 for i in range(1, 33)],
         default=32, help='the batch size'
     )
     parser.add_argument(
-        '-d', '--dataset', type=partial(get_dict_val, datasets),
-        default='mnist', help='the dataset to use in the experiment'
+        '-d', '--dataset', type=str, choices=['digits', 'fashion'],
+        default='digits', help='the dataset to use in the experiment'
     )
     parser.add_argument(
         '-e', '--epochs', type=int, default=500,
