@@ -133,3 +133,6 @@ dmypy.json
 
 # experiments directory
 /experiments
+
+.vs
+.vscode

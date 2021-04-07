@@ -48,7 +48,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
                 axs[i, j].axis('off')
                 cnt += 1
 
-        
+
         # filename = os.path.join(, "", , ".png")
         fig.savefig(f"{img_path}/{epoch:05}.png")
         plt.close()
