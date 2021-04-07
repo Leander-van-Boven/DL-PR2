@@ -1,3 +1,5 @@
+import math
+
 import tensorflow as tf
 from tensorflow.keras.models import Sequential, Model
 from tensorflow.keras.layers import Activation, BatchNormalization, Conv2D
@@ -46,6 +48,53 @@ def build_generator(latent_dim, img_size, force_single_channel=False):
 
     return Model(noise, img)
 
+# This method attempts to add the input depth as a parameter, however 
+# right now this leads to fluctuating output sizes due to the UpSampling2D
+# layer.
+def build_generic_generator(latent_dim, img_size, start_conv=256, 
+                            force_single_channel=False):
+    (img_row, img_col, channels) = img_size
+
+    row = img_row//4
+    col = img_col//4
+
+    assert row*4 == img_row and col*4 == img_col
+    assert (math.log(start_conv)/math.log(2)).is_integer()
+    assert start_conv > 64
+
+    if force_single_channel:
+        img_chan = img_size[2]
+        channels = 1
+
+    model = Sequential()
+    model.add(Dense(start_conv * row * col, activation="relu",
+                    input_dim = latent_dim))
+    model.add(Reshape((row, col, start_conv)))
+
+    conv = start_conv
+
+    while conv >= 64:
+        model.add(UpSampling2D())
+        model.add(Conv2D(conv, kernel_size=3, padding="same"))
+        model.add(BatchNormalization(momentum=0.8))
+        model.add(Activation("relu"))
+        conv //= 2
+
+    model.add(Conv2D(channels, kernel_size=3, padding="same"))
+    model.add(Activation("tanh"))
+    if force_single_channel:
+        c = tf.constant([1, 1, 1, img_chan], tf.int32)
+        model.add(Lambda(
+            lambda a : tf.tile(a, c)
+        ))
+
+    model.summary()
+
+    noise = Input(shape=(latent_dim,))
+    img = model(noise)
+
+    return Model(noise, img)
+
 
 def build_discriminator(architecture, img_shape, opt):
     cnn_disc = architecture(
@@ -62,8 +111,6 @@ def build_discriminator(architecture, img_shape, opt):
 
     bool_layer = Dense(1, activation='sigmoid')(flattened)
     disc = Model(inputs=cnn_disc.input, outputs=bool_layer)
-
-    disc.summary()
 
     disc.compile(
         optimizer=opt,
@@ -84,4 +131,8 @@ def combine_model(gen, disc, latent_dim):
 
 if __name__ == "__main__":
     model = build_generator(100, (28, 28, 1))
-    model.summary()
+    print('\n')
+    model1 = build_generic_generator(100, (28,28,1), 256)
+    # model.summary()
+    # print('\n')
+    # model1.summary()

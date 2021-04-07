@@ -48,18 +48,40 @@ def main(args):
         x_test = process_for_mnist(x_test)
 
     # show_training_image(x_train)
-    noise = tf.random_normal(
-        shape=tf.shape(x_train), mean=0.0, stddev=1, dtype=tf.float32
-    )
-    x_train = tf.add(x_train, noise)
+
+    # Scale x_train between 1 and -1
+    x_train = (x_train / 127.5) - 1.
+
+    # Add noise to training data
+    # idx = show_training_image(x_train)
+    if args.noise > 0:
+        rand_range = args.noise
+        noise = 2 * rand_range * np.random.random(x_train.size) - rand_range
+        x_train += noise.reshape(x_train.shape)
+        x_train = 2 * ((x_train - x_train.min()) / (x_train.max() - x_train.min())) - 1.
+    # show_training_image(x_train, idx)
+    # exit()
+
+    # noise = tf.random_normal(
+    #     shape=tf.shape(x_train), mean=0.0, stddev=1, dtype=tf.float32
+    # )
+    # x_train = tf.add(x_train, noise)
 
     img_shape = x_train.shape[1:]
 
+    # Build generator network
     gen = build_generator(noise_size, img_shape, force_single_channel)
+
+    # Build discriminator network
     if architecture == 'dcgan':
         disc = build_dcgan_discriminator(img_shape, opt)
     else:
         disc = build_discriminator(architecture, img_shape, opt)
+
+    print('GENERATOR')
+    gen.summary()
+    print('\nDISCRIMINATOR')
+    disc.summary()
 
     # save an image on a fraction of the log interval
     log_interval = int(epochs * args.log_interval)
@@ -70,14 +92,15 @@ def main(args):
     )
 
 
-def show_training_image(x_train):
+def show_training_image(x_train, idx=None):
     import matplotlib.pyplot as plt
     _, axs = plt.subplots()
+    idx = idx or np.random.randint(x_train.shape[0])
     axs.imshow(
-        x_train[np.random.randint(x_train.shape[0]), :, :, :].astype(np.uint8)
+        (x_train[idx, :, :, :] + 1) / 2
     )
     plt.show()
-    exit()
+    return idx
 
 
 def process_for_mnist(imgs):
@@ -161,6 +184,7 @@ if __name__ == "__main__":
     optimizers = {
         'adam': Adam(0.01, 0.9, 0.9), # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
         'nadam': Nadam(0.01, 0.9, 0.9),
+        'adamdcgan': Adam(0.0002, 0.5),
         'mse': 'mse'
     }
 
@@ -204,6 +228,10 @@ if __name__ == "__main__":
     parser.add_argument(
         '-s', '--latent_dim', type=int, default=100,
         help='the dimensionality of the latent space used for input noise'
+    )
+    parser.add_argument(
+        '-n', '--noise', type=float_range(0, 1), default=0,
+        help='the amount of noise to add to the trainig data set'
     )
 
     args = parser.parse_args()

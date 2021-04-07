@@ -13,8 +13,6 @@ from gan import combine_model
 def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
                    latent_dim, log_path, img_path, log_interval):
 
-    # Rescale X_train to [-1, 1]?
-    x_train = (x_train / 127.5) - 1.
     noise_size = latent_dim
 
     valid = np.ones((batch_size, 1))
