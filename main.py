@@ -8,22 +8,15 @@ import tensorflow as tf
 from functools import partial
 from numpy.core.shape_base import atleast_3d
 
-from tensorflow.keras.applications import InceptionResNetV2, ResNet152V2
-from tensorflow.keras.applications.efficientnet\
-    import EfficientNetB0, EfficientNetB7
-from tensorflow.keras.datasets import mnist, fashion_mnist, cifar10
+from tensorflow.keras.datasets import mnist, fashion_mnist
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam, Nadam
 
-from gan import build_generator, build_discriminator
 from experiment import run_experiment
 from dcgan1 import build_generator1
 from dcgan2 import build_generator2
-from dcgan_disc import build_dcgan_discriminator
 
 from set_session import initialize_session
-
-# TODO: Import files with proper architectures
 
 
 def main(args):
@@ -34,7 +27,6 @@ def main(args):
     opt = args.optimizer
     epochs = args.epochs
     batch_size = args.batch
-    architecture = args.disc_arch
 
     # Create output directory
     (log_path, img_path) = prepare_directory(args.log_dir)
@@ -43,56 +35,26 @@ def main(args):
     log_setup(log_path, args)
 
     exp_data = mnist if args.dataset == 'digits' else fashion_mnist
+    disc_init = args.dataset if not args.notransfer else \
+        'fashion' if args.dataset == 'digits' else 'digits'
 
     # Load data set
-    (x_train, _), (x_test, _) = exp_data.load_data()
-
-    # Make sure (row, col) becomes (row, col, chan) (mnist is grayscale)
-    # force_single_channel = False
-    # if len(x_train.shape[1:]) == 2:
-    #     force_single_channel = True
-    #     x_train = process_for_mnist(x_train)
-    #     x_test = process_for_mnist(x_test)
-
-    # show_training_image(x_train)
+    (x_train, _), (_, _) = exp_data.load_data()
 
     # Scale x_train between 1 and -1
     x_train = (x_train / 127.5) - 1.
 
-    # Add noise to training data
-    # idx = show_training_image(x_train)
+    # Add noise to data (if applicable)
     if args.noise > 0:
         rand_range = args.noise
         noise = 2 * rand_range * np.random.random(x_train.size) - rand_range
         x_train += noise.reshape(x_train.shape)
         x_train = 2 * \
             ((x_train - x_train.min()) / (x_train.max() - x_train.min())) - 1.
-    # show_training_image(x_train, idx)
-    # exit()
 
-    # noise = tf.random_normal(
-    #     shape=tf.shape(x_train), mean=0.0, stddev=1, dtype=tf.float32
-    # )
-    # x_train = tf.add(x_train, noise)
-
-    gen = exec('build_generator%s()' % args.architecture)
-    disc = load_model('./discriminator%s' % args.architecture)
-
-    img_shape = x_train.shape[1:]
-
-    # # Build generator network
-    # gen = build_generator(noise_size, img_shape, force_single_channel)
-
-    # # Build discriminator network
-    # if architecture == 'dcgan':
-    #     disc = build_dcgan_discriminator(img_shape, opt)
-    # else:
-    #     disc = build_discriminator(architecture, img_shape, opt)
-
-    # print('GENERATOR')
-    # gen.summary()
-    # print('\nDISCRIMINATOR')
-    # disc.summary()
+    # Construct or load D and G models
+    gen = eval('build_generator%s()' % args.architecture)
+    disc = load_model('./discriminator%s_%s' % (args.architecture, disc_init))
 
     # save an image on a fraction of the log interval
     log_interval = int(epochs * args.log_interval)
@@ -178,13 +140,6 @@ if __name__ == "__main__":
     def get_dict_val(dict, val):
         return dict[val]
 
-    disc_architectures = {
-        "r152v2": ResNet152V2,
-        "efnb0": EfficientNetB0,
-        "efnb7": EfficientNetB7,
-        "dcgan": "dcgan"
-    }
-
     # TODO: Change string value to class constructor, add argument
     #       for optimizer parameters (*args, **kwargs)
     optimizers = {
@@ -199,7 +154,7 @@ if __name__ == "__main__":
     )
 
     parser.add_argument(
-        '-a', '--architecture', type=int, choices=[1,2], default=1
+        '-a', '--architecture', type=int, choices=[1,2], default=1,
         help='the architecture to use'
     )
     parser.add_argument(
@@ -238,6 +193,10 @@ if __name__ == "__main__":
     parser.add_argument(
         '-n', '--noise', type=float_range(0, 1), default=0,
         help='the amount of noise to add to the trainig data set'
+    )
+    parser.add_argument(
+        '-t', '--notransfer', action='store_true',
+        help='add flag to disable transfer learning'
     )
 
     args = parser.parse_args()

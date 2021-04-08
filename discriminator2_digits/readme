@@ -1,0 +1,1 @@
+main.py expects a SavedModel folder structure with this folder's name for the second discriminator model trained on digits mnist

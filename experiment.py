@@ -78,9 +78,9 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
         # print("")
 
         print("\n--EPOCH %s--" % epoch)
-        print("d_loss_real, %s" % list(map(str, zip(disc.metrics_names, d_loss_real))))
-        print("d_loss_fake, %s" % list(map(str, zip(disc.metrics_names, d_loss_fake))))
-        print("g_loss     , %s" % list(map(str, zip(combined.metrics_names, g_loss))))
+        print("d_real, %s" % list(map(str, zip(disc.metrics_names, d_loss_real))))
+        print("d_fake, %s" % list(map(str, zip(disc.metrics_names, d_loss_fake))))
+        print("g     , %s" % list(map(str, zip(combined.metrics_names, g_loss))))
 
         # write results to csv file
         with open(log_file, mode='a+') as csv_file:
