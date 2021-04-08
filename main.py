@@ -52,8 +52,10 @@ def main(args):
         x_train = 2 * \
             ((x_train - x_train.min()) / (x_train.max() - x_train.min())) - 1.
 
+    img_shape = x_train.shape[1:]
+
     # Construct or load D and G models
-    gen = eval('build_generator%s()' % args.architecture)
+    gen = eval('build_generator%s(noise_size)' % args.architecture)
     disc = load_model('./discriminator%s_%s' % (args.architecture, disc_init))
 
     # save an image on a fraction of the log interval

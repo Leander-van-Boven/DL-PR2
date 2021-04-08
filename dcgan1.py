@@ -11,19 +11,12 @@ from tensorflow.keras.layers import Reshape, UpSampling2D, ZeroPadding2D
 from tensorflow.keras.models import Model, Sequential
 
 
-def build_generator1(latent_dim, img_size):
-    (img_row, img_col, channels) = img_size
-
-    row = img_row // 4
-    col = img_col // 4
-
-    assert row*4 == img_row and col*4 == img_col
-
+def build_generator1(latent_dim):
     model = Sequential()
 
-    model.add(Dense(128 * row * col, activation="relu",
+    model.add(Dense(128*7*7, activation="relu",
                     input_dim=latent_dim))
-    model.add(Reshape((row, col, 128)))
+    model.add(Reshape((7, 7, 128)))
     model.add(UpSampling2D())
     model.add(Conv2D(128, kernel_size=3, padding="same"))
     model.add(BatchNormalization(momentum=0.8))
@@ -32,7 +25,7 @@ def build_generator1(latent_dim, img_size):
     model.add(Conv2D(64, kernel_size=3, padding="same"))
     model.add(BatchNormalization(momentum=0.8))
     model.add(Activation("relu"))
-    model.add(Conv2D(channels, kernel_size=3, padding="same"))
+    model.add(Conv2D(1, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
 
     model.summary()
