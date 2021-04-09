@@ -13,8 +13,8 @@ from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam, Nadam
 
 from experiment import run_experiment
-from dcgan1 import build_generator1
-from dcgan2 import build_generator2
+from dcgan1 import build_generator1, build_discriminator1
+from dcgan2 import build_generator2, build_discriminator2
 
 from set_session import initialize_session
 
@@ -35,8 +35,7 @@ def main(args):
     log_setup(log_path, args)
 
     exp_data = mnist if args.dataset == 'digits' else fashion_mnist
-    disc_init = args.dataset if not args.notransfer else \
-        'fashion' if args.dataset == 'digits' else 'digits'
+    disc_init = 'fashion' if args.dataset == 'digits' else 'digits'
 
     # Load data set
     (x_train, _), (_, _) = exp_data.load_data()
@@ -56,7 +55,9 @@ def main(args):
 
     # Construct or load D and G models
     gen = eval('build_generator%s(noise_size)' % args.architecture)
-    disc = load_model('./discriminator%s_%s' % (args.architecture, disc_init))
+    disc = eval('build_discriminator%s(img_shape, opt)' % args.architecture) \
+        if args.notransfer else \
+        load_model('./discriminator%s_%s' % (args.architecture, disc_init))
 
     # save an image on a fraction of the log interval
     log_interval = int(epochs * args.log_interval)
