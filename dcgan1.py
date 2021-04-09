@@ -36,7 +36,8 @@ def build_generator1(latent_dim):
     return Model(noise, img)
 
 
-def build_discriminator1(img_shape, include_dense=True):
+def build_discriminator1(img_shape, include_dense=True, 
+                         compile=True, opt='adam'):
     model = Sequential()
 
     model.add(Conv2D(32, kernel_size=3, strides=2,
@@ -67,10 +68,11 @@ def build_discriminator1(img_shape, include_dense=True):
 
     disc = Model(img, validity)
 
-    # disc.compile(
-    #     optimizer=opt,
-    #     loss=loss,
-    #     metrics=['accuracy']
-    # )
+    if compile:
+        disc.compile(
+            optimizer=opt,
+            loss='binary_crossentropy',
+            metrics=['accuracy']
+        )
 
     return disc
