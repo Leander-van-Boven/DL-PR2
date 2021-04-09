@@ -39,20 +39,20 @@ def main(args):
         'fashion' if args.dataset == 'digits' else 'digits'
 
     # Load data set
-    (x_train, _), (_, _) = exp_data.load_data()
+    (X_train, _), (_, _) = exp_data.load_data()
 
     # Scale x_train between 1 and -1
-    x_train = (x_train / 127.5) - 1.
+    X_train = (X_train / 127.5) - 1.
 
     # Add noise to data (if applicable)
     if args.noise > 0:
         rand_range = args.noise
-        noise = 2 * rand_range * np.random.random(x_train.size) - rand_range
-        x_train += noise.reshape(x_train.shape)
-        x_train = 2 * \
-            ((x_train - x_train.min()) / (x_train.max() - x_train.min())) - 1.
+        noise = 2 * rand_range * np.random.random(X_train.size) - rand_range
+        X_train += noise.reshape(X_train.shape)
+        X_train = 2 * \
+            ((X_train - X_train.min()) / (X_train.max() - X_train.min())) - 1.
 
-    img_shape = x_train.shape[1:]
+    img_shape = X_train.shape[1:]
 
     # Construct or load D and G models
     gen = eval('build_generator%s(noise_size)' % args.architecture)
@@ -62,7 +62,7 @@ def main(args):
     log_interval = int(epochs * args.log_interval)
 
     run_experiment(
-        gen, disc, x_train, opt, epochs, batch_size, noise_size, log_path, 
+        gen, disc, X_train, opt, epochs, batch_size, noise_size, log_path, 
         img_path, log_interval
     )
 

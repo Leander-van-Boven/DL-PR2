@@ -38,7 +38,7 @@ def build_generator2(latent_dim, units=1024,activation='relu'):
     return Model(noise, img)
 
 
-def build_discriminator2(img_shape, opt, loss='binary_crossentropy', nb_filter=64):
+def build_discriminator2(img_shape, include_dense=True, nb_filter=64):
     model = Sequential()
     model.add(Conv2D(nb_filter, (5, 5), strides=(2, 2), padding='same',
                      input_shape=img_shape))
@@ -53,8 +53,9 @@ def build_discriminator2(img_shape, opt, loss='binary_crossentropy', nb_filter=6
     model.add(BatchNormalization())
     model.add(Dropout(0.5))
     model.add(ELU())
-    model.add(Dense(1))
-    model.add(Activation('sigmoid'))
+    if include_dense:
+        model.add(Dense(1))
+        model.add(Activation('sigmoid'))
 
     model.summary()
 
@@ -63,10 +64,10 @@ def build_discriminator2(img_shape, opt, loss='binary_crossentropy', nb_filter=6
 
     disc = Model(img, validity)
 
-    disc.compile(
-        optimizer=opt,
-        loss=loss,
-        metrics=['accuracy']
-    )
+    # disc.compile(
+    #     optimizer=opt,
+    #     loss=loss,
+    #     metrics=['accuracy']
+    # )
 
     return disc
