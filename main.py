@@ -33,15 +33,13 @@ def main(args):
     # Write experimental setup to file
     log_setup(log_path, args)
 
-    if args.optargs is None:
-        optimizers = {
-            'adam': Adam(0.001, 0.9, 0.9), # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
-            'nadam': Nadam(0.001, 0.9, 0.9),
+    pre_optimizers = {
+            'adamm2m': Adam(0.001, 0.9, 0.9), # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
             'adamdcgan': Adam(0.005, 0.5),
-            'mse': 'mse'
         }
-        opt = optimizers[args.optimizer]
-    else:
+    try:
+        opt = pre_optimizers[args.optimizer]
+    except:
         optimizers = {
             'adam' : Adam,
             'nadam' : Nadam,
@@ -66,17 +64,15 @@ def main(args):
         X_train = 2 * \
             ((X_train - X_train.min()) / (X_train.max() - X_train.min())) - 1.
 
-    img_shape = X_train.shape[1:]
-
     # Construct or load D and G models
     gen = eval('build_generator%s(noise_size)' % args.architecture)
-    # TODO do we want the argparse optimizer for the discriminator or not?
-    disc = eval('build_discriminator%s(img_shape, opt=opt)' % args.architecture) \
-        if args.notransfer else \
-        load_model('./discriminator%s_%s' % (args.architecture, disc_init))
+    # # TODO do we want the argparse optimizer for the discriminator or not?
+    # disc = eval('build_discriminator%s(img_shape, opt=opt)' % args.architecture) \
+    #     if args.notransfer else \
+    #     load_model('./discriminator%s_%s' % (args.architecture, disc_init))
 
     if args.notransfer:
-        disc = eval('build_discriminator%s(img_shape, opt=opt)' % args.architecture)
+        disc = eval('build_discriminator%s((28,28,1), opt=opt)' % args.architecture)
     else:
         disc = load_model('./discriminator%s_%s' % (args.architecture, disc_init))
         disc.layers[1].trainable = False
@@ -202,11 +198,12 @@ if __name__ == "__main__":
               setting this to 0 will save no images.'
     )
     parser.add_argument(
-        '-o', '--optimizer', type=str, choices=['adam', 'nadam', 'rmsprop'],
+        '-o', '--optimizer', type=str, 
+        choices=['adamm2m', 'adamdcgan', 'adam', 'nadam', 'rmsprop'],
         default='adam', help='the optimizer to use'
     )
     parser.add_argument(
-        '-O', '--optargs', type=float, nargs='+', default=None,
+        '-O', '--optargs', type=float, nargs='+', default=[],
         help='named arguments put into the optimizer constructor'
     )
     parser.add_argument(
@@ -222,7 +219,7 @@ if __name__ == "__main__":
         help='the amount of noise to add to the trainig data set'
     )
     parser.add_argument(
-        '-t', '--notransfer', action='store_true',
+        '--notransfer', action='store_true',
         help='add flag to disable transfer learning'
     )
     parser.add_argument(
