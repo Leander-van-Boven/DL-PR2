@@ -1,19 +1,42 @@
-Transfer
-    Architecture 1
-        Optimizer high impact on output
-            Too high learning rate --> quick and sloppy convergence
-            Too low learning rate --> no convergence, TNR of D so low that acc of G becomes close to 1
-            Sweet spot?
-                Adam(1e-3, .5, .999) seems to be good for both transfer directions
-                
-    Architecture 2
-        Seems like too few dense output weights to do any good
+Observation
+    Transfer:
+        Architecture 1
+            Optimizer high impact on output
+                Too high learning rate --> quick and sloppy convergence
+                Too low learning rate --> no convergence, TNR of D so low that acc of G becomes close to 1
+                Sweet spot?
+                    Adam(1e-3, .5, .999) seems to be good for both transfer directions
 
-Notransfer:
-    Architecture 1
-        Weird bug again where all accuracies are 1.0 w/ gibberish pictures
-        Might be because of optimizer: Too high learning rate   
-            Digits work better with Adam(1e-4) (and perhaps RMSprop(1e-4))
+        Architecture 2
+            Seems like too few dense output weights to do any good
 
-    Architecture 2
-        Can't get it to work, neither Adam nor RMSprop with different params
+    No transfer:
+        Architecture 1
+            Weird bug again where all accuracies are 1.0 w/ gibberish pictures
+            Might be because of optimizer: Too high learning rate   
+                Digits work better with Adam(1e-4) (and perhaps RMSprop(1e-4))
+
+        Architecture 2
+            Can't get it to work, neither Adam nor RMSprop with different params
+
+----------------------------------------------------------------------------------------
+
+Prelim Conclusion:
+    * Adam with params mixed from mind2mind and dcgan seem to work best on transfer
+    * Transfer learning works surprisingly good
+    * Didn't get better outcome without transfer learning, thus untrained D. 
+    * Perhaps good outcome with D pre-trained on same dataset
+        * Possible secondary conclusion: Pretraining D as classifier on the same dataset leads to quick and better convergence of the GAN training?    
+
+----------------------------------------------------------------------------------------
+
+Things to do:
+    * [important] I think we need some kind of fully fledged experimental setup that we can describe in the report
+        * What do we want to measure?
+        * Hyperparameter setup?
+            * Justification?
+    * Probably difficult but quantifying speed of convergence? It's the main purpose of DTL after all, to be done quicker
+        * But how to measure convergence?
+        * Possibly note in future research but feels wrong not to do it ourselves
+    * More exploration in no transfer learning performance?
+    * [if time permits] I feel like we can get better outcome with more optimizer args exploration
