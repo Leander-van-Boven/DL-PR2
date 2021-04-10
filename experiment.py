@@ -42,7 +42,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i, j].imshow(gen_imgs[cnt, :, :, :])  # , cmap='gray')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, :], cmap='gray')
                 axs[i, j].axis('off')
                 cnt += 1
 
@@ -50,6 +50,19 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
         # filename = os.path.join(, "", , ".png")
         fig.savefig(f"{img_path}/{epoch:05}.png")
         plt.close()
+
+     # write results to csv file
+    with open(log_file, mode='a+') as csv_file:
+        csv_writer = csv.writer(
+            csv_file, delimiter=',', quotechar='"',
+            quoting=csv.QUOTE_MINIMAL
+        )
+
+        csv_writer.writerow(
+            ["epoch", "d_loss_real", "d_loss_fake", "d_loss", "d_acc_real", 
+            "d_acc_fake", "d_acc", "g_loss", "g_acc"]
+        )
+
 
     for epoch in range(epochs):
         # Train discriminator
@@ -89,7 +102,11 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
                 quoting=csv.QUOTE_MINIMAL
             )
 
-            csv_writer.writerow([epoch, d_loss[0], 100*d_loss[1], g_loss[0]])
+            csv_writer.writerow(
+                [epoch, d_loss_real[0], d_loss_fake[0], 
+                (d_loss_real[0]+d_loss_fake[0])/2, d_loss_real[1], d_loss_fake[1],
+                (d_loss_real[1]+d_loss_fake[1])/2, g_loss[0], g_loss[1]]
+            )
 
         if epoch % log_interval == 0:
             save_imgs(epoch)

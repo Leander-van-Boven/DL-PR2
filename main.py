@@ -10,7 +10,7 @@ from numpy.core.shape_base import atleast_3d
 
 from tensorflow.keras.datasets import mnist, fashion_mnist
 from tensorflow.keras.models import load_model
-from tensorflow.keras.optimizers import Adam, Nadam
+from tensorflow.keras.optimizers import Adam, Nadam, RMSprop
 
 from experiment import run_experiment
 from dcgan1 import build_generator1, build_discriminator1
@@ -24,7 +24,6 @@ def main(args):
         initialize_session()
 
     noise_size = args.latent_dim
-    opt = args.optimizer
     epochs = args.epochs
     batch_size = args.batch
 
@@ -33,6 +32,22 @@ def main(args):
 
     # Write experimental setup to file
     log_setup(log_path, args)
+
+    if args.optargs is None:
+        optimizers = {
+            'adam': Adam(0.001, 0.9, 0.9), # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
+            'nadam': Nadam(0.001, 0.9, 0.9),
+            'adamdcgan': Adam(0.005, 0.5),
+            'mse': 'mse'
+        }
+        opt = optimizers[args.optimizer]
+    else:
+        optimizers = {
+            'adam' : Adam,
+            'nadam' : Nadam,
+            'rmsprop' : RMSprop
+        }
+        opt = optimizers[args.optimizer](*args.optargs)
 
     exp_data = mnist if args.dataset == 'digits' else fashion_mnist
     disc_init = 'fashion' if args.dataset == 'digits' else 'digits'
@@ -55,9 +70,24 @@ def main(args):
 
     # Construct or load D and G models
     gen = eval('build_generator%s(noise_size)' % args.architecture)
-    disc = eval('build_discriminator%s(img_shape, opt)' % args.architecture) \
+    # TODO do we want the argparse optimizer for the discriminator or not?
+    disc = eval('build_discriminator%s(img_shape, opt=opt)' % args.architecture) \
         if args.notransfer else \
         load_model('./discriminator%s_%s' % (args.architecture, disc_init))
+
+    if args.notransfer:
+        disc = eval('build_discriminator%s(img_shape, opt=opt)' % args.architecture)
+    else:
+        disc = load_model('./discriminator%s_%s' % (args.architecture, disc_init))
+        disc.layers[1].trainable = False
+        disc.compile(
+            optimizer = opt,
+            loss = 'binary_crossentropy',
+            metrics=['accuracy']
+        )
+
+    print("DISCRIMINATOR")
+    disc.summary()
 
     # save an image on a fraction of the log interval
     log_interval = int(epochs * args.log_interval)
@@ -138,19 +168,9 @@ def float_range(mini,maxi):
     # Return function handle to checking function
     return float_range_checker
 
-
 if __name__ == "__main__":
     def get_dict_val(dict, val):
         return dict[val]
-
-    # TODO: Change string value to class constructor, add argument
-    #       for optimizer parameters (*args, **kwargs)
-    optimizers = {
-        'adam': Adam(0.01, 0.9, 0.9), # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
-        'nadam': Nadam(0.01, 0.9, 0.9),
-        'adamdcgan': Adam(0.0002, 0.5),
-        'mse': 'mse'
-    }
 
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
@@ -182,8 +202,12 @@ if __name__ == "__main__":
               setting this to 0 will save no images.'
     )
     parser.add_argument(
-        '-o', '--optimizer', type=partial(get_dict_val, optimizers),
+        '-o', '--optimizer', type=str, choices=['adam', 'nadam', 'rmsprop'],
         default='adam', help='the optimizer to use'
+    )
+    parser.add_argument(
+        '-O', '--optargs', type=float, nargs='+', default=None,
+        help='named arguments put into the optimizer constructor'
     )
     parser.add_argument(
         '-l', '--log_dir', type=str, default='./experiments/',
@@ -201,8 +225,13 @@ if __name__ == "__main__":
         '-t', '--notransfer', action='store_true',
         help='add flag to disable transfer learning'
     )
+    parser.add_argument(
+        '-c', '--check_args', action='store_true',
+        help='add flag to print the argparse result'
+    )
 
     args = parser.parse_args()
-    #input(args)
+    if args.check_args:
+        input(args)
 
     main(args)
