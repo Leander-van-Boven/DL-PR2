@@ -11,7 +11,7 @@ from gan import combine_model
 
 
 def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
-                   latent_dim, log_path, img_path, log_interval):
+                   latent_dim, log_path, img_path, log_interval, print):
 
     noise_size = latent_dim
 

@@ -18,6 +18,7 @@ from dcgan2 import build_generator2, build_discriminator2
 
 from set_session import initialize_session
 
+def nothing(*args, **kwargs): pass
 
 def main(args):
     if args.init_session:
@@ -48,7 +49,10 @@ def main(args):
         opt = optimizers[args.optimizer](*args.optargs)
 
     exp_data = mnist if args.dataset == 'digits' else fashion_mnist
-    disc_init = 'fashion' if args.dataset == 'digits' else 'digits'
+    if args.dtl == 1:
+        disc_init = args.dataset
+    elif args.dtl == 2:
+        disc_init = 'fashion' if args.dataset == 'digits' else 'digits'
 
     # Load data set
     (X_train, _), (_, _) = exp_data.load_data()
@@ -71,7 +75,7 @@ def main(args):
     #     if args.notransfer else \
     #     load_model('./discriminator%s_%s' % (args.architecture, disc_init))
 
-    if args.notransfer:
+    if args.dtl == 0:
         disc = eval('build_discriminator%s((28,28,1), opt=opt)' % args.architecture)
     else:
         disc = load_model('./discriminator%s_%s' % (args.architecture, disc_init))
@@ -88,9 +92,11 @@ def main(args):
     # save an image on a fraction of the log interval
     log_interval = int(epochs * args.log_interval)
 
+    pr = nothing if args.verbose==0 else print
+
     run_experiment(
         gen, disc, X_train, opt, epochs, batch_size, noise_size, log_path, 
-        img_path, log_interval
+        img_path, log_interval, pr
     )
 
 
@@ -171,7 +177,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-
+    parser.add_argument(
+        '-v', '--verbose', type=int, choices=[0,1], default=1,
+        help='verbosity mode, 0 is no printing'
+    )
     parser.add_argument(
         '-a', '--architecture', type=int, choices=[1,2], default=1,
         help='the architecture to use'
@@ -200,7 +209,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '-o', '--optimizer', type=str, 
         choices=['adamm2m', 'adamdcgan', 'adam', 'nadam', 'rmsprop'],
-        default='adam', help='the optimizer to use'
+        default='adamdcgan', help='the optimizer to use'
     )
     parser.add_argument(
         '-O', '--optargs', type=float, nargs='+', default=[],
@@ -219,8 +228,8 @@ if __name__ == "__main__":
         help='the amount of noise to add to the trainig data set'
     )
     parser.add_argument(
-        '--notransfer', action='store_true',
-        help='add flag to disable transfer learning'
+        '-D', '--dtl', type=int, choices=[0,1,2], default=2, 
+        help='what kind of transfer learning, 0: no dtl, 1: take disc pretrained on same dataset, 2: take disc pretrained on other dataset'
     )
     parser.add_argument(
         '-c', '--check_args', action='store_true',
