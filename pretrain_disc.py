@@ -2,7 +2,7 @@ from keras.callbacks import EarlyStopping
 from keras.datasets import mnist, fashion_mnist
 from keras.layers import Dense
 from keras.metrics import Precision
-from keras.models import Model
+from keras.models import Model, load_model
 from keras.utils.np_utils import to_categorical
 
 from dcgan1 import build_discriminator1
@@ -63,3 +63,4 @@ if __name__ == "__main__":
     for model in models:
         print(model[0])
         train_disc(*model)
+    
