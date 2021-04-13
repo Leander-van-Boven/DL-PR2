@@ -2,6 +2,7 @@ import numpy as np
 import os
 import datetime
 import csv
+from numpy.core import shape_base
 import tensorflow as tf
 import matplotlib.pyplot as plt
 
@@ -42,7 +43,7 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
         cnt = 0
         for i in range(r):
             for j in range(c):
-                axs[i, j].imshow(gen_imgs[cnt, :, :, :], cmap='gray')
+                axs[i, j].imshow(gen_imgs[cnt, :, :, 0], cmap='gray')
                 axs[i, j].axis('off')
                 cnt += 1
 
