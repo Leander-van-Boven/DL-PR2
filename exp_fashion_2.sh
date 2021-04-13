@@ -19,4 +19,4 @@ module purge
 module load TensorFlow/2.3.1-fosscuda-2019b-Python-3.7.4 scikit-learn/0.22.2.post1-fosscuda-2019b-Python-3.7.4 matplotlib/3.1.1-fosscuda-2019b-Python-3.7.4
 
 # Run the python script, outputting to a predefined output directory and passing any arguments passed to the bash file
-python ~/deep_learning_course/project_2/main.py --log_dir ~/deep_learning_course/project_2/output/ -d fashion -D 2 -e 5000 -v 0 $*
+python ~/deep_learning_course/project_2/main.py --log_dir ~/deep_learning_course/project_2/output/ -d fashion -D 2 -e 5000 -v 0 -o adam -O 1e-3 0.5 0.999 $*
