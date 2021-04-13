@@ -4,13 +4,13 @@
 ############################################################
 
 # -*- coding: utf-8 -*-
-from keras.models import Sequential, Model
-from keras.layers import Dense, Activation, Input, Reshape
-from keras.layers.normalization import BatchNormalization
-from keras.layers.convolutional import UpSampling2D, Conv2D, MaxPooling2D
-from keras.layers.advanced_activations import LeakyReLU, ELU
-from keras.optimizers import Adam
-from keras.layers import Flatten, Dropout
+from tensorflow.keras.models import Sequential, Model
+from tensorflow.keras.layers import Dense, Activation, Input, Reshape
+from tensorflow.keras.layers import BatchNormalization
+from tensorflow.keras.layers import UpSampling2D, Conv2D, MaxPooling2D
+from tensorflow.keras.layers import LeakyReLU, ELU
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.layers import Flatten, Dropout
 
 
 def build_generator2(latent_dim, units=1024,activation='relu'):
