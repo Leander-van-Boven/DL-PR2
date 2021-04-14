@@ -109,7 +109,8 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
                 (d_loss_real[1]+d_loss_fake[1])/2, g_loss[0], g_loss[1]]
             )
 
-        if epoch % log_interval == 0:
+        if log_interval > 0 and epoch % log_interval == 0:
             save_imgs(epoch)
 
-    save_imgs(epochs)
+    if log_interval > 0:
+        save_imgs(epochs)
