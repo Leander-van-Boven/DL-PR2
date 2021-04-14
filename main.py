@@ -1,26 +1,31 @@
 import argparse
-import csv
-import logging
-import os
 import datetime
-import numpy as np
-import tensorflow as tf
-from functools import partial
-from numpy.core.shape_base import atleast_3d
+import os
 
-from tensorflow.keras.datasets import mnist, fashion_mnist
+import numpy as np
+from tensorflow.keras.datasets import fashion_mnist, mnist
 from tensorflow.keras.models import load_model
 from tensorflow.keras.optimizers import Adam, Nadam, RMSprop
 
+from dcgan1 import build_discriminator1, build_generator1
+from dcgan2 import build_discriminator2, build_generator2
 from experiment import run_experiment
-from dcgan1 import build_generator1, build_discriminator1
-from dcgan2 import build_generator2, build_discriminator2
-
 from set_session import initialize_session
 
-def nothing(*args, **kwargs): pass
+
+def nothing(*args, **kwargs):
+    pass
+
 
 def main(args):
+    """Main method that initializes everything that is needed
+        to run the experiments.
+
+    Parameters
+    ----------
+    args : ArgParse namespace
+        ArgParse namespace that contains all the commandline arguments used.
+    """
     if args.init_session:
         initialize_session()
 
@@ -34,20 +39,23 @@ def main(args):
     # Write experimental setup to file
     log_setup(log_path, args)
 
+    # Initialize model optimizers
     pre_optimizers = {
-            'adamm2m': Adam(0.001, 0.9, 0.9), # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
+            # based on https://arxiv-org.proxy-ub.rug.nl/pdf/1906.11613.pdf
+            'adamm2m': Adam(0.001, 0.9, 0.9),
             'adamdcgan': Adam(0.005, 0.5),
         }
     try:
         opt = pre_optimizers[args.optimizer]
     except:
         optimizers = {
-            'adam' : Adam,
-            'nadam' : Nadam,
-            'rmsprop' : RMSprop
+            'adam': Adam,
+            'nadam': Nadam,
+            'rmsprop': RMSprop
         }
         opt = optimizers[args.optimizer](*args.optargs)
 
+    # Determine which dataset to use
     exp_data = mnist if args.dataset == 'digits' else fashion_mnist
     if args.dtl == 1:
         disc_init = args.dataset
@@ -57,7 +65,7 @@ def main(args):
     # Load data set
     (X_train, _), (_, _) = exp_data.load_data()
 
-    # Scale x_train between 1 and -1
+    # Scale X_train between 1 and -1
     X_train = (X_train / 127.5) - 1.
 
     # Add noise to data (if applicable)
@@ -70,63 +78,53 @@ def main(args):
 
     # Construct or load D and G models
     gen = eval('build_generator%s(noise_size)' % args.architecture)
-    # # TODO do we want the argparse optimizer for the discriminator or not?
-    # disc = eval('build_discriminator%s(img_shape, opt=opt)' % args.architecture) \
-    #     if args.notransfer else \
-    #     load_model('./discriminator%s_%s' % (args.architecture, disc_init))
 
     if args.dtl == 0:
-        disc = eval('build_discriminator%s((28,28,1), opt=opt)' % args.architecture)
+        disc = eval(
+            'build_discriminator%s((28,28,1), opt=opt)' % args.architecture
+        )
     else:
-        disc = load_model('./discriminator%s_%s' % (args.architecture, disc_init))
+        disc = load_model(
+            './discriminator%s_%s' % (args.architecture, disc_init)
+        )
         disc.layers[1].trainable = False
         disc.compile(
-            optimizer = opt,
-            loss = 'binary_crossentropy',
+            optimizer=opt,
+            loss='binary_crossentropy',
             metrics=['accuracy']
         )
 
     print("DISCRIMINATOR")
     disc.summary()
 
-    # save an image on a fraction of the log interval
+    # Save an image on a fraction of the log interval
     log_interval = int(epochs * args.log_interval)
 
-    pr = nothing if args.verbose==0 else print
+    # Determine printing method based on verbosity
+    pr = nothing if args.verbose == 0 else print
 
+    # Perform the actual experiment
     run_experiment(
-        gen, disc, X_train, opt, epochs, batch_size, noise_size, log_path, 
+        gen, disc, X_train, opt, epochs, batch_size, noise_size, log_path,
         img_path, log_interval, pr
     )
 
 
-def show_training_image(x_train, idx=None):
-    import matplotlib.pyplot as plt
-    _, axs = plt.subplots()
-    idx = idx or np.random.randint(x_train.shape[0])
-    axs.imshow(
-        (x_train[idx, :, :, :] + 1) / 2
-    )
-    plt.show()
-    return idx
-
-
-def process_for_mnist(imgs):
-    # append a dimension at the end
-    imgs = np.expand_dims(imgs, -1)
-    # convert to tensor for image processing
-    imgs = tf.convert_to_tensor(imgs, dtype=tf.uint8)
-    # add padding
-    imgs = tf.image.pad_to_bounding_box(imgs, 2, 2, 32, 32)
-    # convert 1d to 3d
-    imgs = tf.image.grayscale_to_rgb(imgs)
-    # convert back to np array
-    imgs = np.array(imgs)
-    return imgs
-
-
 def prepare_directory(log_dir):
-    # prepare log output directory. name is YYYY-MM-DDTHH:MM
+    """Initializes the log directory, using the current date and time.
+        The format of the logging directory will look like: YYYY-MM-DDTHH:MM.
+
+    Parameters
+    ----------
+    log_dir : str
+        Directory in which to create the logging directory.
+
+    Returns
+    -------
+    tuple
+        Tuple containing the name of the logging directory
+        and the subdirectory in which to save the generated images.
+    """
     run_time = datetime.datetime.now().isoformat(timespec='minutes')
     run_time = run_time.replace(':', '-')
 
@@ -139,27 +137,52 @@ def prepare_directory(log_dir):
 
 
 def log_setup(log_path, args):
-    # Print experiment setup for reference
+    """Logs the arguments used to run the experiments with to a file.
+        This way the experiment can be easily reproduced.
+
+    Parameters
+    ----------
+    log_path : str
+        Directory in which to store the setup details.
+    args : dict
+        Dictionary containing the arguments used to run the experiments.
+    """
     setup_file = os.path.join(log_path, "setup.txt")
     with open(setup_file, mode='w') as file:
-        file.writelines([f"{key:20} = {value}\n" for key, value in vars(args).items()])
+        file.writelines(
+            [f"{key:20} = {value}\n" for key, value in vars(args).items()]
+        )
 
 
-def float_range(mini,maxi):
-    """Return function handle of an argument type function for 
-       ArgumentParser checking a float range: mini <= arg <= maxi
-         mini - maximum acceptable argument
-         maxi - maximum acceptable argument
-         
-       Taken from https://stackoverflow.com/a/64259328/4545692"""
+def float_range(mini, maxi):
+    """Return function handle of an argument type function for
+       ArgumentParser checking a float range: mini <= arg <= maxi.
 
-    # Define the function with default arguments
+    Parameters
+    ----------
+    mini : number
+        Minimum acceptable argument.
+    maxi : number
+        Maximum acceptable argument.
+
+    Returns
+    -------
+    Function
+        Function handle to checking function.
+
+    Raises
+    ------
+    argparse.ArgumentTypeError
+        If the entered number is not a floating point.
+    argparse.ArgumentTypeError
+        If the entered floating point is not within the correct range.
+    """
     def float_range_checker(arg):
         """New Type function for argparse - a float within predefined range."""
 
         try:
             f = float(arg)
-        except ValueError:    
+        except ValueError:
             raise argparse.ArgumentTypeError("must be a floating point number")
         if f < mini or f > maxi:
             raise argparse.ArgumentTypeError(
@@ -167,8 +190,8 @@ def float_range(mini,maxi):
             )
         return f
 
-    # Return function handle to checking function
     return float_range_checker
+
 
 if __name__ == "__main__":
     def get_dict_val(dict, val):
@@ -178,11 +201,11 @@ if __name__ == "__main__":
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
     parser.add_argument(
-        '-v', '--verbose', type=int, choices=[0,1], default=1,
+        '-v', '--verbose', type=int, choices=[0, 1], default=1,
         help='verbosity mode, 0 is no printing'
     )
     parser.add_argument(
-        '-a', '--architecture', type=int, choices=[1,2], default=1,
+        '-a', '--architecture', type=int, choices=[1, 2], default=1,
         help='the architecture to use'
     )
     parser.add_argument(
@@ -203,11 +226,11 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         '-i', '--log_interval', type=float_range(0, 0.5), default=.05,
-        help='fraction of epochs on which to save the current images.\
-              setting this to 0 will save no images.'
+        help='fraction of epochs on which to save the current images, ' +
+             'setting this to 0 will save no images'
     )
     parser.add_argument(
-        '-o', '--optimizer', type=str, 
+        '-o', '--optimizer', type=str,
         choices=['adamm2m', 'adamdcgan', 'adam', 'nadam', 'rmsprop'],
         default='adamdcgan', help='the optimizer to use'
     )
@@ -228,8 +251,10 @@ if __name__ == "__main__":
         help='the amount of noise to add to the trainig data set'
     )
     parser.add_argument(
-        '-D', '--dtl', type=int, choices=[0,1,2], default=2, 
-        help='what kind of transfer learning, 0: no dtl, 1: take disc pretrained on same dataset, 2: take disc pretrained on other dataset'
+        '-D', '--dtl', type=int, choices=[0, 1, 2], default=2,
+        help='what kind of transfer learning, 0: no dtl, ' +
+             '1: take disc pretrained on same dataset, ' +
+             '2: take disc pretrained on other dataset'
     )
     parser.add_argument(
         '-c', '--check_args', action='store_true',

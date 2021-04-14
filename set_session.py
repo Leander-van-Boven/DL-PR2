@@ -2,6 +2,7 @@ import tensorflow as tf
 
 
 def initialize_session():
+    """Used to initialize TensorFlow for use on some GPUs."""
     devs = tf.config.list_physical_devices('GPU')
     tf.config.experimental.set_memory_growth(devs[0], True)
 
