@@ -1,21 +1,31 @@
-#####################################################################
-# THIS FILE HAS BEEN COPIED FROM THE eriklindernoren/Keras-GAN REPO #
-# then some modifications were made                                 #
-#####################################################################
+###########################################################################
+# THESE ARCHITECTURES HAVE BEEN COPIED FROM THE FILE:                     #
+# https://github.com/eriklindernoren/Keras-GAN/blob/master/dcgan/dcgan.py #
+###########################################################################
 
-from __future__ import print_function, division
-
-from tensorflow.keras.layers import Activation, BatchNormalization, Conv2D
-from tensorflow.keras.layers import Dense, Dropout, Flatten, Input, LeakyReLU
-from tensorflow.keras.layers import Reshape, UpSampling2D, ZeroPadding2D
+from tensorflow.keras.layers import (Activation, BatchNormalization, Conv2D,
+                                     Dense, Dropout, Flatten, Input, LeakyReLU,
+                                     Reshape, UpSampling2D, ZeroPadding2D)
 from tensorflow.keras.models import Model, Sequential
 
 
 def build_generator1(latent_dim):
+    """Builds the DCGAN generator according to the Erik Linder-Norén
+        implementation.
+
+    Parameters
+    ----------
+    latent_dim : tuple
+        The size of the input vector, i.e. the noise vector.
+
+    Returns
+    -------
+    Model
+        The generator as Model (not compiled yet).
+    """
     model = Sequential()
 
-    model.add(Dense(128*7*7, activation="relu",
-                    input_dim=latent_dim))
+    model.add(Dense(128*7*7, activation="relu", input_dim=latent_dim))
     model.add(Reshape((7, 7, 128)))
     model.add(UpSampling2D())
     model.add(Conv2D(128, kernel_size=3, padding="same"))
@@ -36,8 +46,28 @@ def build_generator1(latent_dim):
     return Model(noise, img)
 
 
-def build_discriminator1(img_shape, include_dense=True, 
+def build_discriminator1(img_shape, include_dense=True,
                          compile=True, opt='adam'):
+    """Builds the DCGAN discriminator accoring to the Erik Linder-Norén
+    implementation.
+
+    Parameters
+    ----------
+    img_shape : tuple
+        The input dimension of the discriminator.
+    include_dense : bool, optional
+        Whether to add the boolean dense layer to the end of the model,
+        by default True
+    compile : bool, optional
+        Whether to compile the discriminator model, by default True
+    opt : str/keras.Optimizer, optional
+        The optimiser to use when compiling the model, by default 'adam'
+
+    Returns
+    -------
+    Model
+        The discriminator as Model.
+    """
     model = Sequential()
 
     model.add(Conv2D(32, kernel_size=3, strides=2,
