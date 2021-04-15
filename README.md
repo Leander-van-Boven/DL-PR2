@@ -31,6 +31,12 @@ The multiple `.sh` files are used to execute the code on the Peregrine cluster, 
 
 (`set_session.py` is a supplementary file that is used to initialise certain GPUs so that they can run TensorFlow)
 
+## Example output
+
+|         | No DTL | DTL on the training dataset | DTL on the other dataset |
+| ---     | --- | --- | --- |
+| Digits  | ![dig-nodtl](./gifs/digits_nodtl.gif) | ![dig-dtl-same](./gifs/digits_dtl_same.gif) | ![dig-dtl-fash](./gifs/digits_dtl_fashion.gif) |
+| Fashion | ![fash-nodtl](./gifs/fashion_nodtl.gif) | ![fash-dtl-same](./gifs/fashion_dtl_same.gif) | ![fash-dtl-fash](./gifs/fashion_dtl_digits.gif) |
 
 ## Running on Peregrine
 
