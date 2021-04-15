@@ -158,6 +158,8 @@ def float_range(mini, maxi):
     """Return function handle of an argument type function for
        ArgumentParser checking a float range: mini <= arg <= maxi.
 
+       Taken from https://stackoverflow.com/a/64259328/4545692
+
     Parameters
     ----------
     mini : number
