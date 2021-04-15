@@ -6,7 +6,7 @@ This project researches the feasibility and performance of applying deep transfe
 
 The following choices were made:
 - The existing GAN architecture was chosen to be DCGAN ([implementation 1](https://github.com/eriklindernoren/Keras-GAN/blob/master/dcgan/dcgan.py), [implementation 2](https://github.com/vwrs/dcgan-mnist/blob/master/model.py)).
-- The [MNIST handwritten digits](http://yann.lecun.com/exdb/mnist/) and [Fashion MNIST](https://www.kaggle.com/zalando-research/fashionmnist) datasets were used as both have $28\times 28 \times 1$ shaped images, are relatively small datasets and are both [contained in the Keras api](https://keras.io/api/datasets/).
+- The [MNIST handwritten digits](http://yann.lecun.com/exdb/mnist/) and [Fashion MNIST](https://www.kaggle.com/zalando-research/fashionmnist) datasets were used as both have 28 &times; 28 &times; 1 shaped images, are relatively small datasets and are both [contained in the Keras api](https://keras.io/api/datasets/).
 
 ## Structure of this repository
 
