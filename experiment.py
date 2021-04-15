@@ -158,8 +158,9 @@ def run_experiment(gen, disc, x_train, opt, epochs, batch_size,
             )
 
         # Save some generator images if we are in a correct epoch
-        if epoch % log_interval == 0:
+        if log_interval > 0 and epoch % log_interval == 0:
             save_imgs(epoch)
 
     # Save final images
-    save_imgs(epochs)
+    if log_interval > 0:
+        save_imgs(epochs)
